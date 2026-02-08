@@ -1,0 +1,23 @@
+title: EDGE Algorithms
+description: Extended General Einsums for Graph Algorithms (EDGE)
+url: "https://owensgroup.github.io"
+baseurl: "/edge-algorithms"
+markdown: kramdown
+kramdown:
+  input: GFM
+  math_engine: mathjax
+collections:
+  algorithms:
+    output: true
+    permalink: /algorithms/:name/
+
+defaults:
+  - scope:
+      path: ""
+      type: algorithms
+    values:
+      layout: algorithm
+
+exclude:
+  - Gemfile
+  - Gemfile.lock

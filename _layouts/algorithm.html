@@ -1,0 +1,40 @@
+---
+layout: default
+---
+
+<article class="algorithm">
+  <h1>{{ page.title }}</h1>
+  {% if page.summary %}
+  <p class="lede">{{ page.summary }}</p>
+  {% endif %}
+
+  {% assign sections =
+  "status_intro|problem_statement|working_example_part1|working_example_part2|edge_expression_walkthrough|edge_expression|other_notes|variants|implementation_notes|complexity_costs|related_notes"
+  | split: "|" %}
+
+  {% for key in sections %}
+  {% assign content = page[key] %}
+  {% if content %}
+  <section class="algorithm-section" id="{{ key }}">
+    <h2>
+      {% case key %}
+      {% when "status_intro" %}Status Intro
+      {% when "problem_statement" %}Problem Statement
+      {% when "working_example_part1" %}Working Example Part 1
+      {% when "working_example_part2" %}Working Example Part 2
+      {% when "edge_expression_walkthrough" %}EDGE Expression Walkthrough
+      {% when "edge_expression" %}EDGE Expression
+      {% when "other_notes" %}Other Notes
+      {% when "variants" %}Variants
+      {% when "implementation_notes" %}Implementation Notes
+      {% when "complexity_costs" %}Complexity Costs
+      {% when "related_notes" %}Related Notes
+      {% endcase %}
+    </h2>
+    <div class="section-body">
+      {{ content | markdownify }}
+    </div>
+  </section>
+  {% endif %}
+  {% endfor %}
+</article>

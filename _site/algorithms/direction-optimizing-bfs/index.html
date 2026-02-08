@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Direction-Optimizing BFS (Scott Beamer) | EDGE Algorithms</title>
+<meta name="description" content="Extended General Einsums for Graph Algorithms (EDGE)" />
+<link rel="stylesheet" href="/edge-algorithms/assets/css/style.css" />
+
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a class="site-title" href="/edge-algorithms/">EDGE Algorithms</a>
+        <p class="site-subtitle">Extended General Einsums for Graph Algorithms (EDGE)</p>
+      </div>
+    </header>
+
+    <main class="container">
+      <article class="algorithm">
+  <h1>Direction-Optimizing BFS (Scott Beamer)</h1>
+  
+  <p class="lede">EDGE formulations for top-down, bottom-up, and hybrid BFS.</p>
+  
+
+  
+
+  
+  
+  
+  <section class="algorithm-section" id="status_intro">
+    <h2>
+      Status Intro
+      
+    </h2>
+    <div class="section-body">
+      <p>Based on the direction-optimizing BFS approach described by Scott Beamer et al.
+This page captures EDGE formulations for top-down, bottom-up, and hybrid BFS.</p>
+
+    </div>
+  </section>
+  
+  
+  
+  
+  <section class="algorithm-section" id="problem_statement">
+    <h2>
+      Problem Statement
+      
+    </h2>
+    <div class="section-body">
+      <p>Given an unweighted graph $G$ with $|V|$ vertices and $|E|$ edges and a source node $s \in V$,
+discover all vertices reachable from $s$. The algorithm builds a BFS tree that records, for each vertex,
+the parent vertex that first discovered it during traversal.</p>
+
+<p><strong>Inputs</strong></p>
+<ul>
+  <li>Graph $G$</li>
+  <li>Source node $s$</li>
+  <li>Frontier initialized with $s$</li>
+</ul>
+
+<p><strong>Outputs</strong></p>
+<ul>
+  <li>Set of vertices reachable from $s$</li>
+  <li>Parent of each vertex in the BFS tree</li>
+</ul>
+
+    </div>
+  </section>
+  
+  
+  
+  
+  <section class="algorithm-section" id="working_example_part1">
+    <h2>
+      Working Example Part 1
+      
+    </h2>
+    <div class="section-body">
+      <p>Working example coming soon.</p>
+
+    </div>
+  </section>
+  
+  
+  
+  
+  <section class="algorithm-section" id="working_example_part2">
+    <h2>
+      Working Example Part 2
+      
+    </h2>
+    <div class="section-body">
+      <p>Working example coming soon.</p>
+
+    </div>
+  </section>
+  
+  
+  
+  
+  <section class="algorithm-section" id="edge_expression_walkthrough">
+    <h2>
+      EDGE Expression Walkthrough
+      
+    </h2>
+    <div class="section-body">
+      <h2 id="top-down-algorithm-english-description">Top-Down Algorithm (English Description)</h2>
+
+<ol>
+  <li>Initialize the frontier with the source node $s$.</li>
+  <li>Find the neighbors of each node in the frontier.</li>
+  <li>If a neighbor’s parent is not yet recorded, assign the current node as its parent.</li>
+  <li>Add all newly discovered neighbors to the frontier.</li>
+  <li>Repeat while the frontier is not empty.</li>
+</ol>
+
+<h2 id="top-down-algorithm-step-by-step-edge">Top-Down Algorithm (Step-by-Step EDGE)</h2>
+
+<p><strong>Tensors</strong></p>
+
+\[\begin{array}{l}
+\triangleright \text{Tensors} \\
+G^{S\equiv|V|,D\equiv|V|} \rightarrow \text{Boolean},\ \text{empty}=\text{false}\\
+F^{I,S\equiv|V|} \rightarrow \text{Boolean},\ \text{empty}=\text{false}\\
+\text{Tree}^{I,S\equiv|V|,D\equiv|V|} \rightarrow \text{Boolean},\ \text{empty}=\text{false}
+\end{array}\]
+
+<ol>
+  <li>Create a 2D tensor $G$ with ranks $S$ and $D$ (source and destination). Values are true when an edge exists.
+\(G^{S,D} \to \text{boolean},\ \text{empty}=\text{false}\)</li>
+  <li>Create frontier tensor $F$ to track active vertices per iteration $i$.
+\(F^{I,S} \to \text{boolean},\ \text{empty}=\text{false}\)</li>
+  <li>Initialize the frontier with the source node $n$.
+\(F_{0,n} = \text{true}\)</li>
+  <li>Store neighbors of each node in the frontier into tensor $N$.
+\(N_{i,d} = G_{s,d} \cdot F_{i,s} :: \bigwedge \text{AND} (\cap) \bigvee \text{OR}(\cup)\)</li>
+  <li>Initialize the Tree tensor so the source node is its own parent.
+\(\text{Tree}_{0,n,n} = \text{true}\)</li>
+  <li>Reduce Tree over the parent rank to find visited nodes (HP).
+\(\text{HP}_{i,c} = \text{Tree}_{i,p,c} :: \bigvee \text{OR}(\cup)\)</li>
+  <li>Complement HP to get unvisited nodes (NP).
+\(\text{NP}_{i,c} = \neg \text{HP}_{i,c}\)</li>
+  <li>Intersect NP with N to get neighbors of frontier not yet visited (NFV).
+\(\text{NFV}_{i,d} = N_{i,d} \cdot \text{NP}_{i,d} :: \bigwedge \text{AND}(\cap)\)</li>
+  <li>Add unvisited neighbors to the next frontier.
+\(F_{i+1,d} = \text{NFV}_{i,d}\)</li>
+  <li>Record newly discovered parents in a temporary tree.
+\(\text{TTree}_{i,s,d} = (G_{s,d} \cdot F_{i,s})_{i,s,d} \cdot \text{NFV}_{i,d} :: \bigwedge \text{AND} (\cap) \bigwedge \text{AND}(\cap)\)</li>
+  <li>If multiple parents discover the same child, select one with populate and <code class="language-plaintext highlighter-rouge">pick-parent</code>.
+\(\text{Temp}_{i,s*,d} = \text{TTree}_{i,s,d} \lll_{s*} \mathbb{1}(\text{pick-parent})\)</li>
+  <li>Merge the temporary tree into the main Tree.
+\(\text{Tree}_{i+1,s,d} = \text{Tree}_{i,s,d} \cdot \text{TTree}_{i,s,d} :: \bigwedge \text{OR}\)</li>
+  <li>Stop when the newly created frontier is empty.
+\(\diamond : ||F_{i+1}|| \equiv \text{false}\)</li>
+</ol>
+
+<p>## Bottom-Up Algorithm (English Description)</p>
+
+<ol>
+  <li>Initialize the frontier with the source node.</li>
+  <li>Add the source to the tree as its own parent.</li>
+  <li>Check which nodes already have parents (to find unvisited nodes).</li>
+  <li>Find the neighbors of all unvisited nodes.</li>
+  <li>If any neighbor is in the frontier, add that node to the new frontier.</li>
+</ol>
+
+<p>## Bottom-Up Algorithm (Step-by-Step EDGE)</p>
+
+<p><strong>Tensors</strong></p>
+
+\[\begin{array}{l}
+ \rightarrow\text{Tensors} \\
+ G^{S,D} \to \text{boolean},\ \text{empty}=\text{false}\\
+ F^{I,S} \to \text{boolean},\ \text{empty}=\text{false}\\
+ \text{Tree}^{I,S,D} \to \text{boolean},\ \text{empty}=\text{false} \\
+ \text{NNP}^{I,S,D} \to \text{boolean},\ \text{empty}=\text{false} \\
+ \text{InF}^{I,S,D} \to \text{boolean},\ \text{empty}=\text{false} \\
+ \end{array}\]
+
+<ol>
+  <li>Create a 2D tensor $G$ with ranks $S$ and $D$. Values are true when an edge exists.
+\(G^{S,D} \to \text{boolean},\ \text{empty}=\text{false}\)</li>
+  <li>Create frontier tensor $F$ to track active vertices per iteration $i$.
+\(F^{I,S} \to \text{boolean},\ \text{empty}=\text{false}\)</li>
+  <li>Initialize the frontier with the source node $n$.
+\(F_{0,n} = \text{true}\)</li>
+  <li>Initialize Tree so the source node is its own parent.
+\(\text{Tree}_{0,n,n} = \text{true}\)</li>
+  <li>Reduce Tree over the parent rank to find visited nodes (HP).
+\(\text{HP}_{i,c} = \text{Tree}_{i,p,c} :: \bigvee \text{OR}(\cup)\)</li>
+  <li>Complement HP to get unvisited nodes (NP).
+\(\text{NP}_{i,c} = \neg \text{HP}_{i,c}\)</li>
+  <li>Find neighbors of unvisited nodes.
+\(\text{NNP}_{i,s,d} = G_{s,d} \cdot \text{NP}_{i,d} :: \bigwedge \text{AND}\)</li>
+  <li>Check if any neighbors are in the frontier.
+\(\text{InF}_{i,s,d} = \text{NNP}_{i,s,d} \cdot F_{i,s} :: \bigwedge \text{AND}(\cap)\)</li>
+  <li>Select only one parent for each child.
+\(\text{Temp}_{i,s*,d} = \text{InF}_{i,s,d} \lll_{s*} \mathbb{1}(\text{pick-parent})\)</li>
+  <li>Update Tree to record newly visited nodes.
+    \(\text{Tree}_{i+1,s,d} = \text{Temp}_{i,s,d} \cdot \text{Tree}_{i,s,d} :: \bigwedge \text{OR}(\cup)\)</li>
+  <li>Update the frontier for the next iteration.
+    \(F_{i+1,d} = \text{InF}_{i,s,d} :: \bigvee \text{OR}(\cup)\)</li>
+  <li>Stop when the new frontier is empty.
+    \(\diamond : ||F_{i+1}|| \equiv \text{false}\)</li>
+</ol>
+
+    </div>
+  </section>
+  
+  
+  
+  
+  <section class="algorithm-section" id="edge_expression">
+    <h2>
+      EDGE Expression
+      
+    </h2>
+    <div class="section-body">
+      <h2 id="top-down-full-edge">Top-Down Full EDGE</h2>
+
+\[\begin{array}{l}
+\triangleright \textbf{Tensors} \\
+G^{S\equiv|V|,D\equiv|V|} \to \text{Boolean},\ \text{empty}=\text{false}\\
+F^{I,S\equiv|V|} \to \text{Boolean},\ \text{empty}=\text{false}\\
+\text{Tree}^{I,S\equiv|V|,D\equiv|V|} \to \text{Boolean},\ \text{empty}=\text{false} \\
+\\
+\triangleright \textbf{Initializations} \\
+F_{i,s} = \text{false} \\
+\text{Tree}_{i,s,d} = \text{false} \\
+G_{s,d} \to &lt;\text{user-specified}&gt; \\
+F_{0,n} = \text{true} \\
+\text{Tree}_{0,n,n} = \text{true} \\
+\\
+\triangleright \textbf{Extended Einsums} \\
+N_{i,d} = G_{s,d} \cdot F_{i,s} :: \bigwedge \text{AND} (\cap) \bigvee \text{OR}(\cup) &amp;\text{.... gather neighbors of nodes in frontier}\\
+\text{HP}_{i,c} = \text{Tree}_{i,p,c} :: \bigvee \text{OR}(\cup) &amp;\text{.... find visited nodes (Have Parents - HP)}\\
+\text{NP}_{i,c} = \neg \text{HP}_{i,c} &amp;\text{.... find unvisited nodes (do Not have Parents - NP)}\\
+\text{NFV}_{i,d} = N_{i,d} \cdot \text{NP}_{i,d} :: \bigwedge \text{AND}(\cap) &amp;\text{.... neighbors of frontier not visited} \\
+F_{i+1,d} = \text{NFV}_{i,d} &amp;\text{.... update frontier}\\
+\text{TTree}_{i,s,d} = (G_{s,d} \cdot F_{i,s})_{i,s,d} \cdot \text{NFV}_{i,d} :: \bigwedge \text{AND} (\cap) \bigwedge \text{AND}(\cap) &amp;\text{.... record parents of newly discovered nodes}\\
+\text{Temp}_{i,s*,d} = \text{TTree}_{i,s,d} \lll_{s*} \mathbb{1}(\text{pick-parent}) &amp;\text{.... pick just one parent}\\
+\text{Tree}_{i+1,s,d} = \text{Tree}_{i,s,d} \cdot \text{TTree}_{i,s,d} :: \bigwedge \text{OR} &amp;\text{.... update Tree}\\
+\diamond : ||F_{i+1}|| \equiv \text{false} &amp;\text{.... terminate when frontier is empty}
+\end{array}\]
+
+<h2 id="bottom-up-full-edge">Bottom-Up Full EDGE</h2>
+
+\[\begin{array}{l}
+\triangleright \textbf{Tensors} \\
+G^{S\equiv|V|,D\equiv|V|} \to \text{Boolean},\ \text{empty}=\text{false}\\
+F^{I,S\equiv|V|} \to \text{Boolean},\ \text{empty}=\text{false}\\
+\text{Tree}^{I,S\equiv|V|,D\equiv|V|} \to \text{Boolean},\ \text{empty}=\text{false} \\
+\text{NNP}^{I,D,S} \to \text{boolean},\ \text{empty}=\text{false} \\
+\text{InF}^{I,D,S} \to \text{boolean},\ \text{empty}=\text{false} \\
+\\
+\triangleright \textbf{Initializations} \\
+F_{i,s} = \text{false} \\
+\text{Tree}_{i,s,d} = \text{false} \\
+G_{s,d} \to &lt;\text{user-specified}&gt; \\
+\text{NNP}_{i,d,s} = \text{false}\\
+\text{InF}_{i,d,s} = \text{false}\\
+F_{0,n} = \text{true} \\
+\text{Tree}_{0,n,n} = \text{true} \\
+\\
+\triangleright \textbf{Extended Einsums} \\
+\text{HP}_{i,c} = \text{Tree}_{i,p,c}:: \bigvee \text{OR}(\cup) &amp;\text{.... find visited nodes (Have Parents - HP)}\\
+\text{NP}_{i,c} = \neg \text{HP}_{i,c} &amp;\text{.... find unvisited nodes (do Not have Parents - NP)}\\
+\text{NNP}_{i,s,d} = G_{s,d} \cdot \text{NP}_{i,d} :: \bigwedge \text{AND} &amp;\text{.... neighbors of unvisited nodes (NP)}\\
+\text{InF}_{i,s,d} = \text{NNP}_{i,s,d} \cdot F_{i,s} :: \bigwedge \text{AND}(\cap) &amp;\text{.... check if neighbors are in frontier}\\
+\text{Temp}_{i,s*,d} = \text{InF}_{i,s,d} \lll_{s*} \mathbb{1}(\text{pick-parent}) &amp;\text{.... pick only one parent}\\
+\text{Tree}_{i+1,s,d} = \text{Temp}_{i,s,d} \cdot \text{Tree}_{i,s,d} :: \bigwedge \text{OR}(\cup) &amp;\text{.... update Tree}\\
+F_{i+1,d} = \text{InF}_{i,s,d} :: \bigvee \text{OR}(\cup) &amp;\text{.... update frontier}\\
+\diamond : ||F_{i+1}|| \equiv \text{false} &amp;\text{.... terminate when frontier is empty}
+\end{array}\]
+
+    </div>
+  </section>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <section class="algorithm-section" id="implementation_notes">
+    <h2>
+      Implementation Notes
+      
+    </h2>
+    <div class="section-body">
+      <p>Implementation notes coming soon.</p>
+
+    </div>
+  </section>
+  
+  
+  
+  
+  <section class="algorithm-section" id="complexity_costs">
+    <h2>
+      Complexity Costs
+      
+    </h2>
+    <div class="section-body">
+      <p>Complexity notes coming soon.</p>
+
+    </div>
+  </section>
+  
+  
+  
+  
+  <section class="algorithm-section" id="related_notes">
+    <h2>
+      Related Notes
+      
+    </h2>
+    <div class="section-body">
+      <p>Related algorithms coming soon.</p>
+
+    </div>
+  </section>
+  
+  
+</article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>EDGE is a notation for Extended General Einsums for Graph Algorithms.</p>
+      </div>
+    </footer>
+  </body>
+</html>

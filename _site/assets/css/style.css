@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600&display=swap');
+
+:root {
+  --bg: #f7f4ee;
+  --paper: #ffffff;
+  --ink: #1f2428;
+  --muted: #5b646d;
+  --accent: #226f74;
+  --accent-2: #d7b56d;
+  --border: #e6e1d9;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: radial-gradient(1200px 400px at 20% -10%, #fff7e6 0%, transparent 60%),
+              radial-gradient(900px 500px at 90% 0%, #e9f4f4 0%, transparent 55%),
+              var(--bg);
+  font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+
+.container {
+  width: min(1000px, 92vw);
+  margin: 0 auto;
+}
+
+.site-header {
+  padding: 2.5rem 0 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.site-title {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 1.8rem;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.site-subtitle {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+
+main {
+  padding: 2rem 0 4rem;
+}
+
+.intro h1 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 2.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.algorithm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.algo-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.algo-card h2 {
+  margin: 0;
+  font-family: 'Libre Baskerville', serif;
+  font-size: 1.3rem;
+}
+
+.algo-card a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.read-more {
+  margin-top: auto;
+  font-weight: 600;
+}
+
+.tag-list {
+  list-style: none;
+  display: flex;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.tag-list li {
+  background: #f1efe9;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.algorithm h1 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 2.1rem;
+}
+
+.lede {
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.algorithm-section {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.4rem;
+  margin: 1.2rem 0;
+}
+
+.algorithm-section h2 {
+  margin-top: 0;
+  font-family: 'Libre Baskerville', serif;
+  font-size: 1.2rem;
+}
+
+.section-body pre,
+.section-body code {
+  background: #f3f1ec;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+}
+
+.site-footer {
+  padding: 2rem 0 3rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .site-header {
+    padding-top: 2rem;
+  }
+
+  .algo-card {
+    padding: 1.2rem;
+  }
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% include head.html %}
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a class="site-title" href="{{ "/" | relative_url }}">{{ site.title }}</a>
+        <p class="site-subtitle">{{ site.description }}</p>
+      </div>
+    </header>
+
+    <main class="container">
+      {{ content }}
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>EDGE is a notation for Extended General Einsums for Graph Algorithms.</p>
+      </div>
+    </footer>
+  </body>
+</html>
