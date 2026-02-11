@@ -9,6 +9,11 @@ title: EDGE Algorithms
     This site presents graph algorithms written in EDGE (Extended General Einsums for Graph Algorithms),
     with structured sections, working examples, and full LaTeX support via MathJax.
   </p>
+  <p>
+    The EDGE language as described here:
+    <a href="https://doi.org/10.48550/arXiv.2404.11591">The EDGE Language: Extended General Einsums for Graph Algorithms</a>
+    (Odemuyiwa, Emer, Owens, 2024).
+  </p>
 </section>
 
 <section class="algorithm-grid">
