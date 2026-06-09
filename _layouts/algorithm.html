@@ -4,6 +4,9 @@ layout: default
 
 <article class="algorithm">
   <h1>{{ page.title }}</h1>
+  {% if page.authors %}
+  <p class="byline">{{ page.authors | join: ", " }}</p>
+  {% endif %}
   {% if page.summary %}
   <p class="lede">{{ page.summary }}</p>
   {% endif %}

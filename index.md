@@ -20,6 +20,9 @@ title: EDGE Algorithms
   {% for algo in site.algorithms %}
     <article class="algo-card">
       <h2><a href="{{ algo.url | relative_url }}">{{ algo.title }}</a></h2>
+      {% if algo.authors %}
+        <p class="byline">{{ algo.authors | join: ", " }}</p>
+      {% endif %}
       {% if algo.summary %}
         <p>{{ algo.summary }}</p>
       {% endif %}
