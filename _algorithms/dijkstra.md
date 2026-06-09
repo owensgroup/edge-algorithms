@@ -56,7 +56,7 @@ working_example_part2: |
 edge_expression_walkthrough: |
   **Pick.** $DQ_{i,s} = Q_{i,s} \cdot D_{i,s} :: \bigwedge \rightarrow(\cap)$ keeps
   the distance of every still-queued vertex. The populate
-  $F_{i,s^*} = DQ_{i,s} :: \lll_{s^*} \mathbf{1}(\text{select-min-s})$ then selects
+  $F_{i,s^\ast} = DQ_{i,s} :: \lll_{s^\ast} \mathbf{1}(\text{select-min-s})$ then selects
   the queued vertex of minimum distance and emits it at its own coordinate, so $F$
   is a one-hot tensor holding the closest unsettled vertex and its distance.
 
@@ -104,7 +104,7 @@ edge_expression: |
   &Q_{0,\ s\,:\,s \in root\_id} = \text{True}\\[4pt]
   &\triangleright \textbf{Extended Einsum (one vertex settled per iteration } i)\\
   &DQ_{i,s} = Q_{i,s} \cdot D_{i,s} :: \textstyle\bigwedge \rightarrow(\cap)\\
-  &F_{i,s^*} = DQ_{i,s} :: \textstyle\lll_{s^*} \mathbf{1}(\text{select-min-s})\\
+  &F_{i,s^\ast} = DQ_{i,s} :: \textstyle\lll_{s^\ast} \mathbf{1}(\text{select-min-s})\\
   &N_{i,d} = G_{s,d} \cdot F_{i,s} :: \textstyle\bigwedge +(\cap)\ \bigvee \min(\cup)\\
   &C_{i,d} = N_{i,d} \cdot D_{i,d} :: \textstyle\bigwedge <(\cup)\\
   &NewlyRelaxed_{i,d} = C_{i,d} \cdot N_{i,d} :: \textstyle\bigwedge \rightarrow(\cap)\\

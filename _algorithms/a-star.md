@@ -69,7 +69,7 @@ edge_expression_walkthrough: |
   **Pick.** $DQ_{i,s} = Q_{i,s} \cdot D_{i,s}$ gives the distance-so-far $g$ of the
   queued vertices; $PQ_{i,s} = DQ_{i,s} \cdot H_s :: \bigwedge +(\cap)$ adds the
   heuristic to form the priority $f = g + h$. The populate
-  $M_{i,s^*} = PQ_{i,s} :: \lll_{s^*} \mathbf{1}(\text{select-min-s})$ selects the
+  $M_{i,s^\ast} = PQ_{i,s} :: \lll_{s^\ast} \mathbf{1}(\text{select-min-s})$ selects the
   minimum-$f$ vertex. Finally $F_{i,s} = M_{i,s} \cdot D_{i,s} :: \bigwedge \rightarrow(\cap)$
   reads the *true* distance $g$ back out of $D$ at the picked coordinate — the
   frontier must carry $g$, not $f$, so that relaxation propagates real distances.
@@ -110,7 +110,7 @@ edge_expression: |
   &\triangleright \textbf{Extended Einsum (one vertex settled per iteration } i)\\
   &DQ_{i,s} = Q_{i,s} \cdot D_{i,s} :: \textstyle\bigwedge \rightarrow(\cap)\\
   &PQ_{i,s} = DQ_{i,s} \cdot H_s :: \textstyle\bigwedge +(\cap)\\
-  &M_{i,s^*} = PQ_{i,s} :: \textstyle\lll_{s^*} \mathbf{1}(\text{select-min-s})\\
+  &M_{i,s^\ast} = PQ_{i,s} :: \textstyle\lll_{s^\ast} \mathbf{1}(\text{select-min-s})\\
   &F_{i,s} = M_{i,s} \cdot D_{i,s} :: \textstyle\bigwedge \rightarrow(\cap)\\
   &N_{i,d} = G_{s,d} \cdot F_{i,s} :: \textstyle\bigwedge +(\cap)\ \bigvee \min(\cup)\\
   &C_{i,d} = N_{i,d} \cdot D_{i,d} :: \textstyle\bigwedge <(\cup)\\

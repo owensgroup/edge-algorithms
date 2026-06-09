@@ -116,7 +116,7 @@ edge_expression: |
   &\triangleright \textbf{Extended Einsum}\\
   &\triangleright \textbf{Begin outer cascade (passes)}\quad i = 0\\[2pt]
   &\triangleright \textbf{Begin inner cascade (steps)}\\
-  &\eqcomment{Pass } 0,\ \text{step } j\ (j \geq 1)\text{: bubble the max rightward through } A\\
+  &\triangleright\ \text{Pass } 0,\ \text{step } j\ (j \geq 1)\text{: bubble the max rightward through } A\\
   &Z_{0,\,j,\,n} =
     \begin{cases}
       Z_{0,\,j-1,\,n} & n < j\\
@@ -124,14 +124,14 @@ edge_expression: |
       \max(Z_{0,\,j-1,\,j},\, A_{j+1}) & n = j+1\\
       \text{empty} & \text{o/w}
     \end{cases}\\[2pt]
-  &\eqcomment{Pass } i\ (i \geq 1)\text{, step } 0\text{: first compare-exchange reads the previous pass's final row}\\
+  &\triangleright\ \text{Pass } i\ (i \geq 1)\text{, step } 0\text{: first compare-exchange reads the previous pass's final row}\\
   &Z_{i,\,0,\,n} =
     \begin{cases}
       \min(Z_{i-1,\,J-1,\,0},\, Z_{i-1,\,J-1,\,1}) & n = 0\\
       \max(Z_{i-1,\,J-1,\,0},\, Z_{i-1,\,J-1,\,1}) & n = 1\\
       Z_{i-1,\,J-1,\,n} & n \geq 2
     \end{cases}\\[2pt]
-  &\eqcomment{Pass } i\ (i \geq 1)\text{, step } j\ (j \geq 1)\text{: bubble rightward through the previous pass's final row}\\
+  &\triangleright\ \text{Pass } i\ (i \geq 1)\text{, step } j\ (j \geq 1)\text{: bubble rightward through the previous pass's final row}\\
   &Z_{i,\,j,\,n} =
     \begin{cases}
       Z_{i,\,j-1,\,n} & n < j\\

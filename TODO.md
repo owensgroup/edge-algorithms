@@ -80,10 +80,10 @@ Open items:
 
 # Post exit-seminar review (added 2026-06-09)
 
-Seven new algorithm pages were added so the site reads as populated for the seminar
-(**13 total** now). Four are **ports** of EDGE already written under
-`edge-ir-interpreter/test-algorithms/`; five are **newly authored** (routed through
-the edge-expert / edge-auditor lens, but NOT yet through the full edge-* fleet gate —
+Eight new algorithm pages were added so the site reads as populated for the seminar
+(**14 total** now). Four are **ports** of EDGE already written under
+`edge-ir-interpreter/test-algorithms/`; six are **newly authored** (SPFA went through the
+full edge-* fleet gate; the other five through the edge-expert / edge-auditor lens —
 review before treating as canonical). Every new page mirrors the `a-star.md` format,
 obeys the kramdown rules above, and contains no Claude/AI comments. Hand-traces were
 recomputed (several machine-checked) but deserve your eye.
@@ -92,9 +92,11 @@ Priority: 🔴 correctness gate · 🟡 confirm a judgment call · 🟢 polish /
 
 ## Deploy / how to show it
 - The site builds to `_site/` and deploys via GitHub Actions on push to `main`
-  (`.github/workflows/pages.yml`). I did **not** commit or push — do that to update
-  the live site, or run `bundle exec jekyll serve` locally.
-- The `shortest-path.md` deletion and the 7 new pages are uncommitted working-tree changes.
+  (`.github/workflows/pages.yml`).
+- **PUSH IS BLOCKED from the assistant's environment** (no SSH key / no `gh` auth here).
+  Two local commits are ready — **you must run `git push origin main`** from your own
+  terminal to deploy. Or preview locally with `bundle exec jekyll serve`.
+- `_site/` is committed but stale; CI regenerates it on deploy.
 
 ## NEW — ports from test-algorithms
 
@@ -187,8 +189,41 @@ Priority: 🔴 correctness gate · 🟡 confirm a judgment call · 🟢 polish /
 - [x] 🟢 Trace verified two ways: post-order [3,2,1,0] vs. pre-order [0,2,3,1]. The page's
   verdict is honest about the open gate — do NOT present it as closed without edge-expert sign-off.
 
+## SPFA + Dijkstra (third pass — full edge fleet)
+
+### spfa.md  (NEW; expert + auditor + syntax-translator all signed off)
+- [x] 🟢 Sourced from the paper's `cascade:spfa` / `cascade:bf-step5`; fleet verdict APPROVED.
+  Differs from Dijkstra by ONE token (`select-any-s` vs `select-min-s`) — the BF→SPFA→Dijkstra
+  family point. Worst-case `select-any` trace hand-verified; final `D` matches Dijkstra.
+- [ ] 🟡 Dequeue uses the site's `take_left_only` form (matches dijkstra.md/a-star.md); the paper
+  prints `Q · ¬F :: ←(∩)`. The auditor flagged `¬F`-on-an-integer as a genuine paper typing gap and
+  considers `take_left_only` the more defensible form (a footnote on the page says so).
+- [ ] 🟡 Stop is `‖Q_{i+1}‖≡0` (queue-empty, matching `cascade:bf-step5`/Dijkstra); the paper's other
+  listing (`cascade:spfa`) prints the fixed-point `D_{i+1}≡D_i`. Pick one.
+- [ ] 🟡 `G` empty=∞ (to match dijkstra.md/a-star.md); the paper's BF block prints `0` (immaterial
+  under the `∩` gather). Family is split (BF=0, Dijkstra/A*/SPFA=∞) — reconcile site-wide.
+
+### dijkstra.md  (already on the site — VERIFIED by the fleet, NOT rewritten)
+- [x] 🟢 Expert + auditor + syntax-translator confirmed the existing page is a faithful rendering of
+  the paper's `cascade:dijkstra`. Kept as-is. Same family open items (dequeue spelling, `G` empty).
+
+## Rendering fixes applied this pass (caught by a headless-Chrome visual check)
+All FIXED and re-verified — all 14 pages now render clean (MathJax typesets every cascade, table, and
+inline span). Root causes + the rule for future pages:
+- [x] **Populate star `^*`** in inline `$...$` — kramdown ate the `*` as emphasis, mangling the
+  Pick/Peek lines on a-star, dijkstra, spfa, depth-first-search, post-order-dfs. Fixed by `^\ast`
+  (renders as ∗, no literal `*`). Applied in display blocks too — so the populate star now shows as
+  ∗ on the pre-existing a-star/dijkstra pages (tiny intentional glyph change).
+- [x] **Two subscript `_{...}` in one inline `$...$` paragraph** paired into `<em>`, garbling prose on
+  maximum-flow (walkthrough), depth-first-search (Stamp), triangle-counting (working example). Fixed by
+  wrapping the affected inline math as `$$...$$`, which kramdown renders as protected inline `\(...\)`.
+- [x] **bubble-sort `\eqcomment{}`** — an undefined MathJax macro rendering as red error text; replaced
+  with `\triangleright\ \text{…}` comment dividers.
+- **RULE for new pages:** inline math containing subscripts or a populate-star should use `$$...$$`
+  (not single `$`), and prefer `^\ast` over `^*`. Single-`$` inline math + `_`/`*` is the kramdown hazard.
+
 ## Capture the new authored ones as test-algorithms artifacts (post-seminar)
-- [ ] Floyd-Warshall, triangle counting, SpMV, bubble sort, and post-order DFS are NOT yet
+- [ ] SPFA, Floyd-Warshall, triangle counting, SpMV, bubble sort, and post-order DFS are NOT yet
   under `edge-ir-interpreter/test-algorithms/`. Per the usual workflow, run them through
   edge-expert → edge-auditor → edge-syntax-translator → edge-coder and add
   `einsum.md` / `build_*.py` / `*_program.json` / `metadata.md`. (Post-order DFS only after

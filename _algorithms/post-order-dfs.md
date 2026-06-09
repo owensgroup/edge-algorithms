@@ -113,7 +113,7 @@ working_example_part2: |
   $S_7 = \lbrace\rbrace$ with $\lVert S_7\rVert \equiv 0$, so $\diamond$ fires and
   the iteration halts.
 edge_expression_walkthrough: |
-  **Peek.** $F_{i,v^*} = S_{i,v} :: \lll_{v^*} \mathbf{1}(\text{max-val-1})$.
+  **Peek.** $F_{i,v^\ast} = S_{i,v} :: \lll_{v^\ast} \mathbf{1}(\text{max-val-1})$.
   The populate emits a one-hot tensor at the coordinate holding the largest stamp
   — the stack top. Because stamps strictly increase with push iteration, the
   maximum-stamp vertex is the most recently pushed *open* vertex, giving
@@ -128,7 +128,7 @@ edge_expression_walkthrough: |
   The complement $\neg D$ is present exactly at the *un*discovered vertices, so
   the intersection keeps the top's undiscovered neighbours.
 
-  **Child.** $C_{i,d^*} = U_{i,d} :: \lll_{d^*} \mathbf{1}(\text{max-coord-1})$.
+  **Child.** $C_{i,d^\ast} = U_{i,d} :: \lll_{d^\ast} \mathbf{1}(\text{max-coord-1})$.
   A second populate selects exactly *one* undiscovered neighbour — the largest
   coordinate — to descend into. Picking one neighbour per round (rather than all,
   as breadth-first search would) is what makes the traversal go deep before wide.
@@ -207,13 +207,13 @@ edge_expression: |
   &D_{0,\ v\,:\,v \in root\_id} = \text{True}\\[4pt]
   &\triangleright \textbf{Extended Einsum (one peek per iteration } i)\\
   &\triangleright \textbf{(1) PEEK}\\
-  &F_{i,v^*} = S_{i,v} :: \textstyle\lll_{v^*} \mathbf{1}(\text{max-val-1})\\
+  &F_{i,v^\ast} = S_{i,v} :: \textstyle\lll_{v^\ast} \mathbf{1}(\text{max-val-1})\\
   &\triangleright \textbf{(2) ADV}\\
   &N_{i,d} = G_{s,d} \cdot F_{i,s} :: \textstyle\bigwedge \leftarrow(\cap)\ \bigvee \text{ANY}(\cup)\\
   &\triangleright \textbf{(3) MASK}\\
   &U_{i,d} = N_{i,d} \cdot \neg D_{i,d} :: \textstyle\bigwedge \leftarrow(\cap)\\
   &\triangleright \textbf{(4) CHILD}\\
-  &C_{i,d^*} = U_{i,d} :: \textstyle\lll_{d^*} \mathbf{1}(\text{max-coord-1})\\
+  &C_{i,d^\ast} = U_{i,d} :: \textstyle\lll_{d^\ast} \mathbf{1}(\text{max-coord-1})\\
   &\triangleright \textbf{(5) DISCOVER}\\
   &D_{i+1,v} = D_{i,v} \cdot C_{i,v} :: \textstyle\bigwedge \text{OR}(\cup)\\
   &\triangleright \textbf{(6) STAMP}\\
