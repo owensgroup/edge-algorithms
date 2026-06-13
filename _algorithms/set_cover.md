@@ -227,6 +227,76 @@ other_notes: |
   Sibling alternatives pushed at depth \(d\) are candidates covering a chosen column \(c_d\). In any sub-branch where one candidate \(r'\) is selected, \(c_d\) becomes covered, making all other candidates for \(c_d\) conflicting. Since conflicting rows are excluded from the active set, none of the shallower alternative siblings can ever be pushed again as candidates at a deeper level. This guarantees that stack updates at depth \(d^* + 1\) never overwrite active alternative branches from shallower levels, preserving the integrity of the backtracking history.
 variants: |
   The cascade can be extended to generalized exact cover (e.g., N-Queens) by adding a static primary column mask \(\mathrm{IsPrimary}\), as demonstrated in Example 3.
+
+  ### Parallelization of Algorithm X in EDGE
+  
+  #### Parallelization Strategy
+  Since Knuth's Algorithm X is a tree-based backtracking search, it can be parallelized by exploring alternative branches of the search tree concurrently (OR-parallelism). When the algorithm selects a column to cover, it branches on the \(K\) candidate rows that cover that column. Each of these \(K\) choices represents a mutually exclusive branch of the search space.
+
+  Because any valid exact cover solution must contain exactly one row covering each column, choosing row \(A\) for column \(c_0\) automatically conflicts with and excludes row \(B\) from all subsequent steps in that branch. Thus, the search spaces under different candidate rows at any branching point are completely disjoint, ensuring that multiple workers can explore these subtrees concurrently without any redundant work or cross-worker overlap.
+
+  #### EDGE Formulation with Worker Rank
+  To express this parallel search algebraically in EDGE, we introduce a new non-reduced tensor rank \(W\) representing the active parallel workers (or threads). For a width of \(W\) parallel search paths, the state tensors are augmented with the rank \(W\) representing each worker's independent search state:
+  - \(S^{I,\, W,\, R}\) representing the open stack of alternatives for each worker \(w \in W\).
+  - \(\mathrm{Path}^{I,\, W,\, R}\) representing each worker's active path of selected rows.
+  
+  All other intermediate state tensors similarly gain the rank \(W\), indicating that they represent the local, independent search sub-problems of each worker.
+
+  #### Full Parallel EDGE Cascade
+  The transition to the parallel worker cascade is extremely clean, requiring only shape propagation along the new rank \(W\) with no structural changes to the logic of the update equations:
+
+  $$
+  \begin{aligned}
+    &\triangleright\ \text{Tensors} \\
+    A^{R,\, C} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    S^{I,\, W,\, R} &\to \text{integer},\ \text{empty}=-1 \\
+    \mathrm{Path}^{I,\, W,\, R} &\to \text{integer},\ \text{empty}=-1 \\
+    \mathrm{SelRow}^{I,\, W,\, R} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    \mathrm{CovCol}^{I,\, W,\, C} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    \mathrm{ActiveCol}^{I,\, W,\, C} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    \mathrm{ConflictRow}^{I,\, W,\, R} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    \mathrm{ActiveRow}^{I,\, W,\, R} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    \mathrm{Success}^{I,\, W} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    \mathrm{Sol}^{I,\, W,\, R} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    \mathrm{RowCounts}^{I,\, W,\, C} &\to \text{integer},\ \text{empty}=0 \\
+    \mathrm{ActiveCounts}^{I,\, W,\, C} &\to \text{integer},\ \text{empty}=0 \\
+    \mathrm{PickedCol}^{I,\, W,\, C} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    \mathrm{Candidates}^{I,\, W,\, R} &\to \text{Boolean},\ \text{empty}=\text{False} \\
+    \mathrm{NewChoices}^{I,\, W,\, R} &\to \text{integer},\ \text{empty}=-1 \\
+    T^{I,\, W,\, R} &\to \text{integer},\ \text{empty}=-1 \\[6pt]
+    &\triangleright\ \text{Stamp function} \\
+    \sigma(depth, r) &= depth \cdot \lvert R\rvert + r \\[6pt]
+    &\triangleright\ \text{Initialization} \\
+    S_{0,\, w,\, r} &= \text{initial candidate rows partitioned across workers } w \in W \\
+    \mathrm{Path}_{0} &= \text{empty} \\[6pt]
+    &\triangleright\ \text{Extended Einsum (one pop/backtrack step per iteration } i\text{)} \\
+    &\triangleright\ \text{\textbf{peek and pop}} \\
+    F_{i,w,r^\ast} &= S_{i,w,r} :: \lll_{r^\ast} \mathbf{1}(\text{select-max-val}) \\
+    d^\ast_{i,w} &= \lfloor F_{i,w,r} / \lvert R\rvert \rfloor :: \bigvee \max(\cup) \\
+    T_{i,w,r} &= S_{i,w,r} \cdot \neg F_{i,w,r} :: \bigwedge \leftarrow(\cap) \\
+    &\triangleright\ \text{\textbf{update path}} \\
+    \mathrm{TPath}_{i,w,r} &= \mathrm{Path}_{i,w,r} \cdot d^\ast_{i,w} :: \bigwedge <(\cap) \\
+    \mathrm{NewPathEntry}_{i,w,r} &= F_{i,w,r} \cdot d^\ast_{i,w} :: \bigwedge \rightarrow(\cap) \\
+    \mathrm{Path}_{i+1,w,r} &= \mathrm{TPath}_{i,w,r} \cdot \mathrm{NewPathEntry}_{i,w,r} :: \bigwedge \texttt{<<}(\cup) \\
+    &\triangleright\ \text{\textbf{active subset computation}} \\
+    \mathrm{SelRow}_{i+1,w,r} &= \mathrm{Path}_{i+1,w,r} \cdot 0 :: \bigwedge \ge(\cup) \\
+    \mathrm{CovCol}_{i+1,w,c} &= A_{r,c} \cdot \mathrm{SelRow}_{i+1,w,r} :: \bigwedge \leftarrow(\cap)\ \bigvee \text{ANY}(\cup) \\
+    \mathrm{ActiveCol}_{i+1,w,c} &= \mathrm{Col}_c \cdot \neg \mathrm{CovCol}_{i+1,w,c} :: \bigwedge \leftarrow(\cap) \\
+    \mathrm{ConflictRow}_{i+1,w,r} &= A_{r,c} \cdot \mathrm{CovCol}_{i+1,w,c} :: \bigwedge \leftarrow(\cap)\ \bigvee \text{ANY}(\cup) \\
+    \mathrm{ActiveRow}_{i+1,w,r} &= \mathrm{Row}_r \cdot \neg \mathrm{ConflictRow}_{i+1,w,r} \cdot \neg \mathrm{SelRow}_{i+1,w,r} :: \bigwedge \leftarrow(\cap) \\
+    &\triangleright\ \text{\textbf{success evaluation}} \\
+    \mathrm{Success}_{i+1,w} &= \lVert \mathrm{ActiveCol}_{i+1,w} \rVert \equiv 0 \\
+    \mathrm{Sol}_{i+1,w,r} &= \mathrm{SelRow}_{i+1,w,r} \cdot \mathrm{Success}_{i+1,w} :: \bigwedge \leftarrow(\cap) \\
+    &\triangleright\ \text{\textbf{branch and push (if Success is False)}} \\
+    \mathrm{RowCounts}_{i+1,w,c} &= A_{r,c} \cdot \mathrm{ActiveRow}_{i+1,w,r} :: \bigwedge \leftarrow(\cap)\ \bigvee +(\cup) \\
+    \mathrm{ActiveCounts}_{i+1,w,c} &= \mathrm{RowCounts}_{i+1,w,c} \cdot \mathrm{ActiveCol}_{i+1,w,c} :: \bigwedge \leftarrow(\cap) \\
+    \mathrm{PickedCol}_{i+1,w,c^\ast} &= \mathrm{ActiveCounts}_{i+1,w,c} :: \lll_{c^\ast} \mathbf{1}(\text{select-min-val}) \\
+    \mathrm{Candidates}_{i+1,w,r} &= (A_{r,c} \cdot \mathrm{PickedCol}_{i+1,w,c} :: \bigwedge \leftarrow(\cap)\ \bigvee \text{ANY}(\cup)) \cdot \mathrm{ActiveRow}_{i+1,w,r} :: \bigwedge \leftarrow(\cap) \\
+    \mathrm{NewChoices}_{i+1,w,r} &= \mathrm{Candidates}_{i+1,w,r} \cdot \sigma(d^\ast_{i,w} + 1, r) :: \bigwedge \rightarrow(\cap) \\
+    S_{i+1,w,r} &= T_{i,w,r} \cdot \mathrm{NewChoices}_{i+1,w,r} :: \bigwedge \texttt{<<}(\cup) \\[6pt]
+    &\diamond : \lVert S_{i+1} \rVert \equiv 0
+  \end{aligned}
+  $$
 implementation_notes: |
   At each iteration, the cascade performs a peek (selecting the maximum stamp coordinate), path truncation and update, matrix-vector product to compute active rows/columns, and a column minimum selection (minimum covering active rows count). In an optimized execution environment, these operations can be vectorized.
 complexity_costs: |
