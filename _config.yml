@@ -1,7 +1,7 @@
 title: EDGE Algorithms
 description: Extended General Einsums for Graph Algorithms (EDGE)
-url: "https://owensgroup.github.io"
-baseurl: "/edge-algorithms"
+url: "https://edge-lang.org"
+baseurl: ""
 markdown: kramdown
 kramdown:
   input: GFM
