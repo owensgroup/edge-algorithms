@@ -11,8 +11,7 @@ title: EDGE Algorithms
   </p>
   <p>
     The EDGE language as described here:
-    <a href="https://doi.org/10.48550/arXiv.2404.11591">The EDGE Language: Extended General Einsums for Graph Algorithms</a>
-    (Odemuyiwa, Emer, Owens, 2024).
+    <a href="https://doi.org/10.48550/arXiv.2404.11591">The EDGE Language: Extended General Einsums for Graph Algorithms</a>.
   </p>
 </section>
 
