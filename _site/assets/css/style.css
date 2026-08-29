@@ -155,3 +155,50 @@ main {
     padding: 1.2rem;
   }
 }
+
+/* --- interactive visualiser links --- */
+.viz-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin: 0 0 1.4rem;
+}
+
+.viz-button {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.viz-button:hover { background: #1b585c; }
+
+.viz-note { color: var(--muted); font-size: 0.9rem; }
+
+.card-actions {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.card-actions .read-more { margin-top: 0; }
+
+.viz-badge {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.15rem 0.65rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.viz-badge:hover { background: var(--accent); color: #fff; }

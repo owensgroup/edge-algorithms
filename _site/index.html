@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>EDGE Algorithms | EDGE Algorithms</title>
 <meta name="description" content="Extended General Einsums for Graph Algorithms (EDGE)" />
-<link rel="stylesheet" href="/edge-algorithms/assets/css/style.css" />
+<link rel="stylesheet" href="/assets/css/style.css" />
 
 <script>
   window.MathJax = {
@@ -22,7 +22,7 @@
   <body>
     <header class="site-header">
       <div class="container">
-        <a class="site-title" href="/edge-algorithms/">EDGE Algorithms</a>
+        <a class="site-title" href="/">EDGE Algorithms</a>
         <p class="site-subtitle">Extended General Einsums for Graph Algorithms (EDGE)</p>
       </div>
     </header>
@@ -34,48 +34,396 @@
     This site presents graph algorithms written in EDGE (Extended General Einsums for Graph Algorithms),
     with structured sections, working examples, and full LaTeX support via MathJax.
   </p>
+  <p>
+    The EDGE language as described here:
+    <a href="https://doi.org/10.48550/arXiv.2404.11591">The EDGE Language: Extended General Einsums for Graph Algorithms</a>.
+  </p>
 </section>
 
 <section class="algorithm-grid">
   
     <article class="algo-card">
-      <h2><a href="/edge-algorithms/algorithms/direction-optimizing-bfs/">Direction-Optimizing BFS (Scott Beamer)</a></h2>
+      <h2><a href="/algorithms/a-star/">A* Search</a></h2>
       
-        <p>EDGE formulations for top-down, bottom-up, and hybrid BFS.</p>
+        <p class="byline">Toluwanimi Odemuyiwa</p>
       
       
-        <ul class="tag-list">
-          
-            <li>bfs</li>
-          
-            <li>direction-optimizing</li>
-          
-            <li>graphs</li>
-          
-            <li>edge</li>
-          
-        </ul>
-      
-      <a class="read-more" href="/edge-algorithms/algorithms/direction-optimizing-bfs/">Read algorithm</a>
-    </article>
-  
-    <article class="algo-card">
-      <h2><a href="/edge-algorithms/algorithms/shortest-path/">Single-Source Shortest Path (Example)</a></h2>
-      
-        <p>Minimal example showing how an EDGE algorithm page is structured.</p>
+        <p>Goal-directed shortest path that orders Dijkstra's pick by distance-so-far plus a heuristic estimate of the remaining distance to a goal, shown with a Manhattan heuristic computed once from per-vertex grid coordinates.</p>
       
       
         <ul class="tag-list">
           
             <li>shortest-paths</li>
           
-            <li>graphs</li>
+            <li>a-star</li>
           
-            <li>demo</li>
+            <li>heuristic-search</li>
+          
+            <li>graphs</li>
           
         </ul>
       
-      <a class="read-more" href="/edge-algorithms/algorithms/shortest-path/">Read algorithm</a>
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/a-star/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/bellman-ford/">Bellman-Ford (Single-Source Shortest Paths)</a></h2>
+      
+        <p class="byline">Sanjana Mali, Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Single-source shortest paths that relaxes every edge each round and re-relaxes vertices whenever a strictly shorter path appears, expressed as a four-step extended Einsum iterated to a fixed point.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>shortest-paths</li>
+          
+            <li>bellman-ford</li>
+          
+            <li>relaxation</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/bellman-ford/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/breadth-first-search/">Breadth-First Search (Depth-Tracking)</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Level-synchronous BFS that records the hop-distance of every vertex from a source set, expressed as an iterated extended Einsum over a graph tensor.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>bfs</li>
+          
+            <li>traversal</li>
+          
+            <li>frontier</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/breadth-first-search/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/bubble-sort/">Bubble Sort</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>In-place comparison sort that repeatedly bubbles the largest unsorted element rightward by a sweep of adjacent compare-exchanges, expressed as a nested cascade over a pass rank and a step rank where each step keeps the min on the left and the max on the right of an adjacent pair.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>sorting</li>
+          
+            <li>compare-exchange</li>
+          
+            <li>iteration</li>
+          
+            <li>building-blocks</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/bubble-sort/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/connected-components/">Connected Components (Label Propagation)</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Connected components by max-label propagation, where every vertex repeatedly adopts the largest label among itself and its neighbours until labels stop changing, expressed as a single iterated extended Einsum over a symmetric, reflexive graph tensor.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>connected-components</li>
+          
+            <li>label-propagation</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/connected-components/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/depth-first-search/">Depth-First Search (Stamped-Stack)</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Sequential depth-first search that carries an explicit stack as a tensor of order stamps, popping the most recently pushed vertex each round, expressed as an iterated extended Einsum over a graph tensor.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>dfs</li>
+          
+            <li>traversal</li>
+          
+            <li>stack</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/depth-first-search/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/dijkstra/">Dijkstra (Single-Source Shortest Paths)</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Single-source shortest paths that settles one vertex per round — always the closest unsettled vertex — and relaxes only its out-edges, expressed as Bellman-Ford's relaxation body wrapped in a priority queue. Requires non-negative edge weights.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>shortest-paths</li>
+          
+            <li>dijkstra</li>
+          
+            <li>priority-queue</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/dijkstra/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/floyd-warshall/">Floyd-Warshall (All-Pairs Shortest Paths)</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>All-pairs shortest paths as a per-pivot min-plus closure, where iteration $i$ admits paths that route through pivot vertex $i$ and the distance tensor is tightened against the through-pivot candidate, iterated once over every vertex.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>shortest-paths</li>
+          
+            <li>all-pairs</li>
+          
+            <li>floyd-warshall</li>
+          
+            <li>min-plus</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/floyd-warshall/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/maximum-flow/">Maximum Flow (Push-Relabel)</a></h2>
+      
+        <p class="byline">Sanjana Mali, Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Maximum s-t flow by the bulk-synchronous push-relabel method, which seeds a saturating preflow from the source and then repeatedly pushes excess down admissible residual edges and relabels stuck vertices, expressed as one long extended Einsum iterated until no internal vertex holds excess.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>max-flow</li>
+          
+            <li>push-relabel</li>
+          
+            <li>residual-graph</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/maximum-flow/">Read algorithm</a>
+        
+          <a class="viz-badge" href="/assets/viz/maximum-flow/" target="_blank" rel="noopener">▶ Visualiser</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/post-order-dfs/">Post-Order Depth-First Search</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Depth-first search that records each vertex when its entire subtree is finished rather than when it is first discovered, expressed as a stamped-stack Einsum that touches every vertex twice and writes a finish time on the way out.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>dfs</li>
+          
+            <li>traversal</li>
+          
+            <li>post-order</li>
+          
+            <li>finish-time</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/post-order-dfs/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/spfa/">Shortest Path Faster Algorithm (SPFA)</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Single-source shortest paths that relaxes only vertices whose distance recently improved, by wrapping Bellman-Ford's relaxation body in a work queue — sitting exactly between Bellman-Ford (relax everything) and Dijkstra (relax the closest), and tolerating negative edge weights.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>shortest-paths</li>
+          
+            <li>spfa</li>
+          
+            <li>bellman-ford</li>
+          
+            <li>work-queue</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/spfa/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/spmv/">Sparse Matrix-Vector Multiply (SpMV)</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>The foundational sparse-linear-algebra primitive, expressed as a single extended Einsum whose intersection merge skips absent matrix entries and whose reduction sums each output row, with a semiring dial that turns the same expression into BFS-advance and shortest-path relaxation.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>spmv</li>
+          
+            <li>sparse-linear-algebra</li>
+          
+            <li>semiring</li>
+          
+            <li>building-blocks</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/spmv/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/triangle-counting/">Triangle Counting</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Counts the triangles in an undirected graph as a single masked Einsum that multiplies two adjacency hops and keeps only the products that land on an existing edge, then reduces the masked counts to a total.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>triangle-counting</li>
+          
+            <li>masked-spgemm</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/triangle-counting/">Read algorithm</a>
+        
+      </div>
+    </article>
+  
+    <article class="algo-card">
+      <h2><a href="/algorithms/widest-path/">Widest Path (Maximum Bottleneck Path)</a></h2>
+      
+        <p class="byline">Toluwanimi Odemuyiwa</p>
+      
+      
+        <p>Single-source maximum-bottleneck paths that widen a wavefront of bottleneck capacities each round and keep the best capacity seen so far, expressed as the max-min mirror of min-plus Bellman-Ford iterated to a fixed point.</p>
+      
+      
+        <ul class="tag-list">
+          
+            <li>shortest-paths</li>
+          
+            <li>widest-path</li>
+          
+            <li>bottleneck</li>
+          
+            <li>max-min</li>
+          
+            <li>graphs</li>
+          
+        </ul>
+      
+      <div class="card-actions">
+        <a class="read-more" href="/algorithms/widest-path/">Read algorithm</a>
+        
+      </div>
     </article>
   
 </section>

@@ -32,7 +32,12 @@ title: EDGE Algorithms
           {% endfor %}
         </ul>
       {% endif %}
-      <a class="read-more" href="{{ algo.url | relative_url }}">Read algorithm</a>
+      <div class="card-actions">
+        <a class="read-more" href="{{ algo.url | relative_url }}">Read algorithm</a>
+        {% if algo.viz %}
+          <a class="viz-badge" href="{{ algo.viz | relative_url }}" target="_blank" rel="noopener">▶ Visualiser</a>
+        {% endif %}
+      </div>
     </article>
   {% endfor %}
 </section>

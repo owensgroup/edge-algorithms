@@ -10,6 +10,14 @@ layout: default
   {% if page.summary %}
   <p class="lede">{{ page.summary }}</p>
   {% endif %}
+  {% if page.viz %}
+  <p class="viz-cta">
+    <a class="viz-button" href="{{ page.viz | relative_url }}" target="_blank" rel="noopener">
+      ▶ {{ page.viz_label | default: "Interactive walkthrough" }}
+    </a>
+    <span class="viz-note">watch every tensor change, one Einsum at a time</span>
+  </p>
+  {% endif %}
 
   {% assign sections =
   "status_intro|problem_statement|working_example_part1|working_example_part2|edge_expression_walkthrough|edge_expression|other_notes|variants|implementation_notes|complexity_costs|related_notes"
