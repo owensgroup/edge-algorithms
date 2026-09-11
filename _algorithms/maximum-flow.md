@@ -6,6 +6,9 @@ tags: [max-flow, push-relabel, residual-graph, graphs]
 viz: /assets/viz/maximum-flow/
 viz_label: Open the interactive walkthrough
 viz_note: step one Einsum at a time, expand any Einsum to see how each value is computed, or race the cascade against the textbook pseudocode
+viz_alt: /assets/viz/maximum-flow-sequential/
+viz_alt_label: Walk the sequential cascade
+viz_alt_note: the same cascade with one Einsum added — see exactly what makes it sequential
 status_intro: |
   This page gives the bulk-synchronous, full-edge form of the push-relabel
   maximum-flow algorithm. It first saturates every edge out of the source to build
