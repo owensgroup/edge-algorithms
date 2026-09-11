@@ -15,7 +15,7 @@ layout: default
     <a class="viz-button" href="{{ page.viz | relative_url }}" target="_blank" rel="noopener">
       ▶ {{ page.viz_label | default: "Interactive walkthrough" }}
     </a>
-    <span class="viz-note">watch every tensor change, one Einsum at a time</span>
+    <span class="viz-note">{{ page.viz_note | default: "watch every tensor change, one Einsum at a time" }}</span>
   </p>
   {% endif %}
 

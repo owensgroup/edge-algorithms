@@ -4,7 +4,8 @@ authors: [Sanjana Mali, Toluwanimi Odemuyiwa]
 summary: Maximum s-t flow by the bulk-synchronous push-relabel method, which seeds a saturating preflow from the source and then repeatedly pushes excess down admissible residual edges and relabels stuck vertices, expressed as one long extended Einsum iterated until no internal vertex holds excess.
 tags: [max-flow, push-relabel, residual-graph, graphs]
 viz: /assets/viz/maximum-flow/
-viz_label: Step through the tensors
+viz_label: Open the interactive walkthrough
+viz_note: step one Einsum at a time, expand any Einsum to see how each value is computed, or race the cascade against the textbook pseudocode
 status_intro: |
   This page gives the bulk-synchronous, full-edge form of the push-relabel
   maximum-flow algorithm. It first saturates every edge out of the source to build
@@ -244,12 +245,44 @@ other_notes: |
 variants: |
   Replacing the populate $$\lll_v$$ that picks one admissible edge per vertex with a
   push along *every* admissible edge gives the fully parallel (all-edges) push-relabel
-  variant, at the cost of needing to split excess across edges. Choosing the highest
-  active vertex first, rather than pushing from all active vertices each generation,
-  recovers the sequential highest-label push-relabel order. Replacing the height-rule
-  pick and relabel machinery with an augmenting-path search on the residual graph
-  recovers the Ford-Fulkerson / Edmonds-Karp family, which grows the flow path by path
-  rather than by local push and relabel.
+  variant, at the cost of needing to split excess across edges. Replacing the
+  height-rule pick and relabel machinery with an augmenting-path search on the residual
+  graph recovers the Ford-Fulkerson / Edmonds-Karp family, which grows the flow path by
+  path rather than by local push and relabel.
+
+  **The sequential form is this cascade plus one Einsum.** Transcribe the textbook
+  pseudocode literally — *while there exists an active vertex, push or relabel it* —
+  and what you get is the cascade above with a selector in front of it:
+
+  $$Sel_{i,u^*} = Act_{i,u} \lll_{u^*} \mathbf{1}(\text{select-any-vertex})$$
+
+  Feed $$Sel$$ into $$ActR$$ in place of $$Act$$, gate $$Rel$$ with it, and the other
+  twenty-three Einsums are unchanged. They need no change because $$Sel$$ is one-hot:
+  only one row survives into $$ActR$$, so $$Adm$$ has one row, so the populate selects
+  one edge, so $$\delta$$ has at most one entry. The reductions still reduce — over a
+  single element.
+
+  Read the other way round, **the parallel version is the sequential one with a
+  selector removed**, and that is the general shape of the transformation: every
+  populate marks a place where the sequential algorithm said "pick one and do it."
+  A selector can be dropped when the items it chooses between do not share mutable
+  state. Dropping $$Sel$$ is safe — each vertex spends only its own excess, and two
+  vertices' pushes land on disjoint cells of $$F$$ and $$R$$; the one collision that
+  would matter, $$u \to v$$ and $$v \to u$$ in the same generation, needs
+  $$D(u) = D(v)+1$$ *and* $$D(v) = D(u)+1$$, which the height rule forbids. Dropping
+  the per-vertex $$\lll_v$$ is *not* safe: one vertex cannot spend the same excess
+  twice. That populate is a resource constraint, not a serialization point.
+
+  Removing a selector is not free. Bulk-synchronous execution has no read-after-write,
+  so anything derived from mutated state must be recomputed as a new generation — which
+  is exactly why $$Act$$ and $$Adm$$ each appear twice per generation above. That
+  duplication is the visible residue of the selector that is no longer there.
+
+  Which vertex $$\text{select-any-vertex}$$ picks is deliberately left open, as in the
+  generic algorithm. Lowest-index, FIFO and highest-label are all valid refinements
+  with their own bounds; across random graphs the rule changes the operation count by
+  up to $$3\times$$ but never the answer. It is a scheduling choice, not part of the
+  specification.
 implementation_notes: |
   The preflow is one saturating product over the source row plus the residual case
   setup. Each generation is dominated by the two edge-ranked tensors $$F$$ and $$R$$:
