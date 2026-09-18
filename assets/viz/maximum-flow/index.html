@@ -157,6 +157,7 @@ body.compare #top{display:none}
 .fold td.acc{color:#5f3dc4;font-weight:700}
 .fold tr.total td{border-top:2px solid #d9c9f5;font-weight:700}
 .spacenote{margin-top:10px;font-size:11.5px;color:#666;max-width:760px;line-height:1.55}
+.spacenote:empty{display:none}   /* no reduction: no gap either */
 .spacenote b{color:#5f3dc4}
 #mpoint{font-size:13px;min-width:0}
 .deriv{border-collapse:collapse;width:100%;font-size:12.5px}
@@ -1011,31 +1012,26 @@ function renderExec(){
 // order each tensor happens to be indexed in -- so what a reduction collapses
 // on screen follows from which RANK the reduced variable walks, not from where
 // that variable sits in the subscript list.
+/* Only what is true of THIS Einsum.
+
+   There used to be a paragraph here restating, on every step, that the points
+   are independent and how the axes are laid out. Both are properties of the
+   whole page, not of the step in front of you, so after the first read they
+   are noise -- and they pushed the part that does change further down. The
+   independence claim still appears once, in the panel subtitle, with the
+   point count; the axis convention lives in the README and in the axis
+   labels themselves. */
 function writeSpaceNote(){
   const {R}=EXEC, vars=R.iterVars;
-  let s='Each point of the <b>'+vars.join(',')+'</b> space is computed '+
-        'without reference to any other, so all '+R.points.length+
-        ' could be evaluated at the same time.';
-  s+=' Axes follow the <b>variable</b>: <b>u</b> runs down, <b>v</b> runs '+
-     'across, so a variable shared between two operands lands on the same '+
-     'axis in both and a reduction points at the cell it collapses into.';
-  if(vars.length>1)
-    s+=' A 2-D grid keeps its declared layout — rank <b>U</b> down, rank '+
-       '<b>V</b> across — because an Einsum reading <i>δ</i><sub>v,u</sub> is '+
-       'not transposing <i>δ</i>, only walking its ranks in a different '+
-       'order, and E12 reads it both ways at once. Each axis is labelled '+
-       '<i>rank</i>:<i>variable</i>, so <b>U:v</b> means that axis is the '+
-       'tensor’s U rank, walked here by v.';
-  if(R.reduceSpec){
-    const rl=(R.reduceSpec.rank_list||[]).join(', ');
-    const op=R.reduceSpec.compute_op.symbol||R.reduceSpec.compute_op.name;
-    s+='<div class="collapse">Rank <b>'+rl+'</b> is reduced, so the space is '+
-       'larger than the output: the highlighted '+
-       (vars.length>1?'line':'group')+' collapses to <b>'+
-       shownName(R.output)+'['+EXEC.sel+']</b> under <b>'+
-       EdgeInterp.glyph(op,'compute')+'</b>.</div>';
-  }
-  $('snote').innerHTML=s;}
+  if(!R.reduceSpec){ $('snote').innerHTML=''; return; }
+  const rl=(R.reduceSpec.rank_list||[]).join(', ');
+  const op=R.reduceSpec.compute_op.symbol||R.reduceSpec.compute_op.name;
+  $('snote').innerHTML=
+    '<div class="collapse">Rank <b>'+rl+'</b> is reduced, so the space is '+
+    'larger than the output: the highlighted '+
+    (vars.length>1?'line':'group')+' collapses to <b>'+
+    shownName(R.output)+'['+EXEC.sel+']</b> under <b>'+
+    EdgeInterp.glyph(op,'compute')+'</b>.</div>';}
 
 // ---- one point, or one reduction group -----------------------------------
 function renderPoint(clicked){
