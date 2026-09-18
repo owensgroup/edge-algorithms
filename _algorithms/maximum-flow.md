@@ -13,8 +13,8 @@ viz_alt2: /assets/viz/maximum-flow-branching/
 viz_alt2_label: Walk the sequential cascade (from the pseudocode)
 viz_alt2_note: written from the while loop instead — one vertex, one test, one operation per round, reproducing the textbook's 29 operations in order
 viz_alt3: /assets/viz/maximum-flow-cascade-diff/
-viz_alt3_label: All three cascades side by side
-viz_alt3_note: every Einsum in three columns, with the differences computed by diffing the specs rather than typed
+viz_alt3_label: Parallel and sequential side by side
+viz_alt3_note: every Einsum in two columns — a selector added, four changed, two dropped — with the differences computed by diffing the specs rather than typed
 status_intro: |
   This page gives the bulk-synchronous, full-edge form of the push-relabel
   maximum-flow algorithm. It first saturates every edge out of the source to build
@@ -286,7 +286,8 @@ variants: |
   **shorter than the parallel one**, 23 Einsums against 24, and reproduces the
   textbook operation for operation: 29 rounds, 29 operations, the same 29 in the same
   order, on every seed tested. Both sequential forms are linked above; the side-by-side
-  page shows all three with the differences computed from the specs.
+  page puts the parallel cascade next to the pseudocode one, with the
+  differences computed from the specs.
 
   So the transformation has two prices, and they are worth stating separately.
   **One Einsum** buys a correct sequentialisation. **Matching the pseudocode
