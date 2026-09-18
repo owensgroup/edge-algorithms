@@ -1016,12 +1016,16 @@ function writeSpaceNote(){
   let s='Each point of the <b>'+vars.join(',')+'</b> space is computed '+
         'without reference to any other, so all '+R.points.length+
         ' could be evaluated at the same time.';
+  s+=' Axes follow the <b>variable</b>: <b>u</b> runs down, <b>v</b> runs '+
+     'across, so a variable shared between two operands lands on the same '+
+     'axis in both and a reduction points at the cell it collapses into.';
   if(vars.length>1)
-    s+=' Every grid keeps the tensor’s own layout — rank <b>U</b> down, rank '+
-       '<b>V</b> across — because an Einsum reading <i>F</i><sub>v,u</sub> is '+
-       'not transposing <i>F</i>, only walking its ranks in a different '+
-       'order. Each axis is labelled <i>rank</i>:<i>variable</i>, so '+
-       '<b>U:v</b> means that axis is the tensor’s U rank, walked here by v.';
+    s+=' A 2-D grid keeps its declared layout — rank <b>U</b> down, rank '+
+       '<b>V</b> across — because an Einsum reading <i>δ</i><sub>v,u</sub> is '+
+       'not transposing <i>δ</i>, only walking its ranks in a different '+
+       'order, and E12 reads it both ways at once. Each axis is labelled '+
+       '<i>rank</i>:<i>variable</i>, so <b>U:v</b> means that axis is the '+
+       'tensor’s U rank, walked here by v.';
   if(R.reduceSpec){
     const rl=(R.reduceSpec.rank_list||[]).join(', ');
     const op=R.reduceSpec.compute_op.symbol||R.reduceSpec.compute_op.name;
@@ -1157,26 +1161,46 @@ function dataVars(name,ranks){
   const d=declOf(name); if(!d||!ranks)return ranks||[];
   return ranks.filter((r,i)=>!(d.ranks[i]&&d.ranks[i].name==='I'));}
 
-/* Fixed screen axes: rank U goes down, rank V goes across, whatever order the
-   tensor is indexed in. Most einsums read their operands in declared order, so
-   the variable names line up with the axes -- but nothing here depends on that:
-   the axis comes from the rank, and the variable is shown in the label. */
+/* Screen axes: the VARIABLE picks the axis -- u runs down, v runs across.
+   Everything in a card strip is drawn so that a shared variable lands on a
+   shared axis, which is the only reason the strip is readable: what a
+   reduction collapses has to point at the cell it collapses into. */
+const AXIS_OF_VAR={u:'down',v:'across'};
+
 function orient(vars,rankNames){
-  // The tensor is NOT redrawn to suit the access. Its ranks are fixed, and the
-  // axis a rank is drawn on is fixed with it: rank U runs down, rank V runs
-  // across, in every grid on the page. An einsum reading a tensor out of
-  // declared order -- say X_{v,u} -- is not transposing X; it is walking X's U
-  // rank with the variable v and its V rank with u. So the layout stays put
-  // and the LABEL carries the binding: "U:v" means this is the tensor's U
-  // rank, walked here by v.
   const lab=(i)=>((rankNames&&rankNames[i])?rankNames[i]+':':'')+(vars[i]||'?');
   const nd=rankNames?rankNames.length:vars.length;
   if(nd===0)return {rows:0,cols:0,head:'',key:()=>''};
   if(nd===1){
-    const across=(rankNames&&rankNames[0])==='V';
+    /* A 1-D tensor is laid out by the variable walking it HERE, not by its
+       declared rank. E03 is the case that forces this:
+
+           E_{1,v} = F_{1,u,v}  ::  V +(U)        reducing u
+
+       F is 2-D and keeps rank U down, rank V across, so the cells this point
+       reads are a COLUMN of F -- one per u, all at horizontal position v. The
+       output cell has to sit under that column, so E is drawn ACROSS, indexed
+       by v. Drawn down (by its declared rank U) its cell for v would sit at
+       vertical position v, nowhere near the column feeding it.
+
+       The same tensor can therefore appear across in one Einsum and down in
+       another -- InPush is written InPush_{i,v} in E13 and read InPush_{i,u}
+       in E15 -- which is correct rather than inconsistent: the orientation
+       shows how it is being walked here, and the rank:variable label on the
+       axis says which rank that is. Grids in the static and generational
+       panels have no access to show, so those stay on the declared rank. */
+    const v0=vars[0];
+    const across=(v0 in AXIS_OF_VAR)
+      ? AXIS_OF_VAR[v0]==='across'
+      : (rankNames&&rankNames[0])==='V';   // unknown variable: fall back to rank
     return across
       ? {rows:0,cols:N,head:lab(0),key:(r,c)=>''+c}
       : {rows:N,cols:0,head:lab(0),key:r=>''+r};}
+  /* 2-D tensors keep their declared layout -- rank U down, rank V across --
+     even when read out of order. E12 is why: it reads delta_{i,u,v} AND
+     delta_{i,v,u} in the same Einsum, so honouring the variable would draw
+     one tensor two contradictory ways in one strip. The label carries the
+     binding instead: "U:v" is the tensor's U rank, walked here by v. */
   return {rows:N,cols:N,head:lab(0)+'\\'+lab(1),key:(r,c)=>r+','+c};}
 
 function miniGrid(name,dict,mark,cls,pick,vars,rankOverride){
