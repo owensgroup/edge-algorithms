@@ -5,10 +5,16 @@ summary: Maximum s-t flow by the bulk-synchronous push-relabel method, which see
 tags: [max-flow, push-relabel, residual-graph, graphs]
 viz: /assets/viz/maximum-flow/
 viz_label: Open the interactive walkthrough
-viz_note: step one Einsum at a time, expand any Einsum to see how each value is computed, or race the cascade against the textbook pseudocode
+viz_note: step one Einsum at a time and watch it execute — every point of its iteration space, and how each value is computed — or race the cascade against the textbook pseudocode
 viz_alt: /assets/viz/maximum-flow-sequential/
-viz_alt_label: Walk the sequential cascade
-viz_alt_note: the same cascade with one Einsum added — see exactly what makes it sequential
+viz_alt_label: Walk the sequential cascade (derived)
+viz_alt_note: the parallel cascade with one Einsum added — a correct sequentialisation, but one that still evaluates both arms each round
+viz_alt2: /assets/viz/maximum-flow-branching/
+viz_alt2_label: Walk the sequential cascade (from the pseudocode)
+viz_alt2_note: written from the while loop instead — one vertex, one test, one operation per round, reproducing the textbook's 29 operations in order
+viz_alt3: /assets/viz/maximum-flow-cascade-diff/
+viz_alt3_label: All three cascades side by side
+viz_alt3_note: every Einsum in three columns, with the differences computed by diffing the specs rather than typed
 status_intro: |
   This page gives the bulk-synchronous, full-edge form of the push-relabel
   maximum-flow algorithm. It first saturates every edge out of the source to build
@@ -253,17 +259,38 @@ variants: |
   graph recovers the Ford-Fulkerson / Edmonds-Karp family, which grows the flow path by
   path rather than by local push and relabel.
 
-  **The sequential form is this cascade plus one Einsum.** Transcribe the textbook
-  pseudocode literally — *while there exists an active vertex, push or relabel it* —
-  and what you get is the cascade above with a selector in front of it:
+  **A correct sequential form is this cascade plus one Einsum.** Put a selector in
+  front of it:
 
   $$Sel_{i,u^*} = Act_{i,u} \lll_{u^*} \mathbf{1}(\text{select-any-vertex})$$
 
   Feed $$Sel$$ into $$ActR$$ in place of $$Act$$, gate $$Rel$$ with it, and the other
-  twenty-three Einsums are unchanged. They need no change because $$Sel$$ is one-hot:
+  twenty-two Einsums are unchanged. They need no change because $$Sel$$ is one-hot:
   only one row survives into $$ActR$$, so $$Adm$$ has one row, so the populate selects
   one edge, so $$\delta$$ has at most one entry. The reductions still reduce — over a
-  single element.
+  single element. The result computes the same maximum flow, with the same number of
+  pushes and relabels.
+
+  **That is not the same as transcribing the pseudocode.** The cascade above
+  recomputes $$Act$$ and $$Adm$$ after the push, because bulk-synchronous execution
+  has no read-after-write. Keep those recomputations and the relabel test is asked
+  against *post-push* state — so a vertex that makes a saturating push, still holds
+  excess, and now has nothing admissible will relabel **in the same round**. On CLRS
+  Figure 26.1 that happens three times: 29 operations packed into 26 rounds. Every
+  round is a legal push-relabel step, but a round is no longer an iteration of
+  *while there exists an active vertex*.
+
+  Writing the pseudocode out directly instead — pick one vertex, test it **once**,
+  then push *or* relabel — moves the admissibility test before the push, decides the
+  branch from it, and drops the three post-push recomputations. That cascade is
+  **shorter than the parallel one**, 23 Einsums against 24, and reproduces the
+  textbook operation for operation: 29 rounds, 29 operations, the same 29 in the same
+  order, on every seed tested. Both sequential forms are linked above; the side-by-side
+  page shows all three with the differences computed from the specs.
+
+  So the transformation has two prices, and they are worth stating separately.
+  **One Einsum** buys a correct sequentialisation. **Matching the pseudocode
+  operation for operation** costs that Einsum plus three edits and three deletions.
 
   Read the other way round, **the parallel version is the sequential one with a
   selector removed**, and that is the general shape of the transformation: every

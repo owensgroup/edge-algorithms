@@ -1,0 +1,170 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Max-flow — the three cascades side by side</title>
+<script>window.MathJax={tex:{inlineMath:[["\\(","\\)"]],displayMath:[["\\[","\\]"]],
+  packages:{"[+]":["ams"]}},chtml:{scale:.95},startup:{typeset:false}};</script>
+<script async id="mjx" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#222;background:#fafafa}
+.wrap{width:min(1750px,97vw);margin:0 auto}
+header{background:#fff;border-bottom:1px solid #ddd;padding:1.5rem 0 1.1rem}
+h1{font-family:'Libre Baskerville',serif;font-size:1.5rem;margin:0}
+.sub{color:#777;margin:.35rem 0 0}
+.lede{margin:.9rem 0 0;max-width:900px;color:#555;line-height:1.6}
+.lede b{color:#222}
+.counts{display:flex;gap:26px;margin:1rem 0 0}
+.counts div b{display:block;font-size:1.6rem;font-family:Georgia,serif;line-height:1.1}
+.counts div span{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.06em}
+.counts .hi b{color:#b8860b}
+main{padding:18px 0 60px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #ddd;border-radius:8px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+   color:#888;padding:11px 14px;border-bottom:1px solid #ddd;background:#fcfcfd}
+th.eid{width:62px}
+td{padding:9px 14px;border-bottom:1px solid #f0f0f0;vertical-align:top;width:31%}
+td.eid{font-family:ui-monospace,monospace;font-size:11.5px;color:#aaa;font-weight:600;
+       width:62px;white-space:nowrap;padding-top:13px}
+tr.section td{background:#f6f7f9;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.08em;color:#8a8a8a;font-weight:700;padding:7px 14px;border-top:1px solid #e6e6e6}
+tr.same td{color:#555}
+tr.same mjx-container{opacity:.62}
+tr.changed{background:#fffdf3} tr.added{background:#fff9e8}
+tr.changed td.eid,tr.added td.eid{color:#b8860b}
+tr.changed td.seqcol,tr.added td.seqcol{box-shadow:inset 3px 0 0 #f0c040}
+/* third column: how the branching cascade differs from the predicated one */
+td.dircol{border-left:1px solid #e8e8e8;background:#fcfdff}
+td.dircol.changed{background:#f2f7ff;box-shadow:inset 3px 0 0 #6ba3e8}
+td.dircol.moved{background:#eef5ff;box-shadow:inset 3px 0 0 #9ec1ec}
+td.dircol.dropped{background:#fbfbfb}
+.chip.b{background:#dbeafe;border-color:#7ba7e0;color:#1d4f91}
+.blabel{font-family:ui-monospace,monospace;font-size:10.5px;color:#7aa3d8;
+  font-weight:700;display:block;margin-bottom:3px}
+.gone{color:#c9c9c9;font-style:italic;font-size:12px}
+.note.b{color:#1d4f91;background:#eef5ff;border-color:#c2d9f5}
+.note.b b{color:#14385f}
+body.only-diff tr.alldiff-hide{display:none}
+.chip{display:inline-block;background:#ffe9a8;border:1px solid #e8c25c;color:#7a5c00;
+  border-radius:9px;padding:0 7px;font-size:10px;font-weight:700;letter-spacing:.03em;
+  text-transform:uppercase;margin-left:7px;vertical-align:2px}
+.none{color:#ccc;font-style:italic}
+.note{font-size:12px;color:#7a5c00;background:#fff6db;border:1px solid #f0e0a8;
+  border-radius:6px;padding:6px 10px;margin-top:8px;line-height:1.5}
+.note b{color:#5c4600}
+.mean{font-size:12px;color:#888;margin-top:6px;line-height:1.5}
+.legend{display:flex;gap:18px;align-items:center;margin:0 0 12px;font-size:12px;color:#777}
+.sw{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+footer{border-top:1px solid #ddd;color:#888;font-size:12.5px;padding:1.2rem 0 2.5rem;background:#fff}
+footer code{background:#f2f2f2;padding:1px 5px;border-radius:3px}
+#tog{font:inherit;font-size:12px;padding:4px 11px;border:1px solid #bbb;background:#fff;
+  border-radius:5px;cursor:pointer;margin-left:auto}
+#tog:hover{background:#f2f2f2}
+body.only-diff tr.same, body.only-diff tr.section{display:none}
+</style></head><body>
+<header><div class="wrap">
+  <h1>Max-flow: the three cascades, side by side</h1>
+  <p class="sub">Push–relabel written as Extended Einsums — bulk-synchronous,
+   then sequentialised two different ways.</p>
+  <p class="lede">All three compute the same maximum flow on the same graph.
+   The highlighting is <b>computed by diffing the specs</b>, not marked by hand.</p>
+  <p class="lede" style="margin-top:.6rem"><b>Column 2 — predicated.</b> The
+   parallel cascade with <b>one Einsum added</b> and <b>two changed</b>. Every
+   other line is identical, character for character. This is the source of the
+   claim that <i>parallelism here is one Einsum</i> — and it is true, as far as
+   it goes.</p>
+  <p class="lede" style="margin-top:.6rem"><b>Column 3 — branching.</b> What you
+   get writing the pseudocode out directly: pick one vertex, test it once,
+   then push <b>or</b> relabel. It has to move the admissibility test before
+   the push and <b>drop the three post-push recomputations</b> — which the
+   parallel cascade needs (bulk-synchronous execution has no read-after-write)
+   and a sequential one does not. Column 2 keeps them, and that is why a
+   vertex there can push and relabel in the same round:
+   <b>26 rounds for 29 operations</b>. Column 3 is
+   <b>29 rounds, 29 operations</b>, the same 29 the textbook performs, in the
+   same order.</p>
+  <p class="lede" style="margin-top:.6rem"><b>Reading column 3.</b> Its rows are
+   aligned to column 2 so the expressions line up, which means its own labels
+   run out of order — <code>B11</code> and <code>B12</code> appear down in the
+   relabel section because that is where the predicated cascade asks the same
+   question. <b>That is the move, made visible</b>: in the branching cascade
+   they run before the push, right after <code>B10</code>.</p>
+  <div class="counts">
+    <div><b>22</b><span>parallel → predicated, identical</span></div>
+    <div class="hi"><b>3</b><span>parallel → predicated, differ</span></div>
+    <div><b>19</b><span>predicated → branching, identical</span></div>
+    <div class="hi"><b>6</b><span>predicated → branching, differ</span></div>
+    <div><b>13 / 26 / 29</b><span>rounds</span></div>
+    <div><b>23</b><span>maximum flow, all three</span></div>
+  </div>
+</div></header>
+<main><div class="wrap">
+  <p class="legend">
+    <span><span class="sw" style="background:#fff9e8;border:1px solid #f0c040"></span>parallel → predicated</span>
+    <span><span class="sw" style="background:#eef5ff;border:1px solid #4b7bec"></span>predicated → branching</span>
+    <span><span class="sw" style="background:#fff;border:1px solid #ddd"></span>identical</span>
+    <button id="tog">show only the differences</button>
+  </p>
+  <table id="t">
+    <tr><th class="eid"></th><th>Parallel — every active vertex acts</th>
+        <th>Predicated — one vertex acts, both arms evaluated</th>
+        <th>Branching — one vertex, one arm, one operation</th></tr>
+  </table>
+</div></main>
+<footer><div class="wrap">
+  Generated from <code>viz/meta.py</code>, <code>viz-seq/meta_seq.py</code> and
+  <code>viz-direct/meta_direct.py</code> by <code>build_cascade_diff.py</code> —
+  the same Einsums the three walkthrough pages typeset, so this cannot drift
+  from them. The third column is aligned to the second by the branching
+  cascade's own inheritance map. The build fails if the differences stop being
+  exactly the expected ones.
+</div></footer>
+<script>
+const ROWS_ = [{"id": "init", "kind": "same", "par": "F_{i\\equiv 0,u,v}=0,\\quad E_{i\\equiv 0,u}=0,\\quad D_{i\\equiv 1,u}=0,\\quad D_{i\\equiv 1,u:u=s}=|V|,\\quad S_{u:u=s},\\quad T_{u:u=t}", "seq": "F_{i\\equiv 0,u,v}=0,\\quad E_{i\\equiv 0,u}=0,\\quad D_{i\\equiv 1,u}=0,\\quad D_{i\\equiv 1,u:u=s}=|V|,\\quad S_{u:u=s},\\quad T_{u:u=t}", "dir": "F_{i\\equiv 0,u,v}=0,\\quad E_{i\\equiv 0,u}=0,\\quad D_{i\\equiv 1,u}=0,\\quad D_{i\\equiv 1,u:u=s}=|V|,\\quad S_{u:u=s},\\quad T_{u:u=t}", "dirLabel": "init", "dirKind": "same", "dirNote": "", "section": "Initializations", "note": "", "meaning": "Sets the first generation of each tensor. S and T are one-hot over u."}, {"id": "E01", "kind": "same", "par": "\\mathit{FS}_{i\\equiv 1,u,v} = S_u \\cdot C_{u,v} \\;::\\; \\bigwedge *(\\cap)", "seq": "\\mathit{FS}_{i\\equiv 1,u,v} = S_u \\cdot C_{u,v} \\;::\\; \\bigwedge *(\\cap)", "dir": "\\mathit{FS}_{i\\equiv 1,u,v} = S_u \\cdot C_{u,v} \\;::\\; \\bigwedge *(\\cap)", "dirLabel": "E01", "dirKind": "same", "dirNote": "", "section": "Preflow", "note": "", "meaning": "For a point (u,v) of FS, take S at u and C at (u,v). \u2229 keeps only points where both exist, so only the u = s row survives."}, {"id": "E02", "kind": "same", "par": "F_{i\\equiv 1,u,v} = \\mathit{FS}_{i\\equiv 1,u,v} \\cdot \\mathit{FS}_{i\\equiv 1,v,u} \\;::\\; \\bigwedge -(\\cup)", "seq": "F_{i\\equiv 1,u,v} = \\mathit{FS}_{i\\equiv 1,u,v} \\cdot \\mathit{FS}_{i\\equiv 1,v,u} \\;::\\; \\bigwedge -(\\cup)", "dir": "F_{i\\equiv 1,u,v} = \\mathit{FS}_{i\\equiv 1,u,v} \\cdot \\mathit{FS}_{i\\equiv 1,v,u} \\;::\\; \\bigwedge -(\\cup)", "dirLabel": "E02", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point (u,v) of F, take FS at (u,v) and subtract FS at (v,u)."}, {"id": "E03", "kind": "same", "par": "E_{i\\equiv 1,v} = F_{i\\equiv 1,u,v} \\;::\\; \\bigvee +(\\cup)", "seq": "E_{i\\equiv 1,v} = F_{i\\equiv 1,u,v} \\;::\\; \\bigvee +(\\cup)", "dir": "E_{i\\equiv 1,v} = F_{i\\equiv 1,u,v} \\;::\\; \\bigvee +(\\cup)", "dirLabel": "E03", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "Reduce over rank u: for each v, sum F at all points (u,v)."}, {"id": "E04", "kind": "same", "par": "R_{i\\equiv 1,u,v} = \\begin{cases} 0 & u = s \\\\ C_{v,u} & v = s \\,\\wedge\\, u \\neq s \\\\ C_{u,v} & \\text{otherwise} \\end{cases}", "seq": "R_{i\\equiv 1,u,v} = \\begin{cases} 0 & u = s \\\\ C_{v,u} & v = s \\,\\wedge\\, u \\neq s \\\\ C_{u,v} & \\text{otherwise} \\end{cases}", "dir": "R_{i\\equiv 1,u,v} = \\begin{cases} 0 & u = s \\\\ C_{v,u} & v = s \\,\\wedge\\, u \\neq s \\\\ C_{u,v} & \\text{otherwise} \\end{cases}", "dirLabel": "E04", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point (u,v) of R, three disjoint cases choose the value."}, {"id": "E05", "kind": "same", "par": "\\mathit{NST}_u = \\neg S_u \\cdot \\neg T_u \\;::\\; \\bigwedge \\text{AND}(\\cap)", "seq": "\\mathit{NST}_u = \\neg S_u \\cdot \\neg T_u \\;::\\; \\bigwedge \\text{AND}(\\cap)", "dir": "\\mathit{NST}_u = \\neg S_u \\cdot \\neg T_u \\;::\\; \\bigwedge \\text{AND}(\\cap)", "dirLabel": "E05", "dirKind": "same", "dirNote": "", "section": "Choosing who acts", "note": "", "meaning": "For a point u of NST, keep it where both \u00acS and \u00acT exist."}, {"id": "E06", "kind": "same", "par": "\\mathit{Act}_{i,u} = \\mathit{NST}_u \\cdot^1 (E_{i,u} \\cdot^2 0)_{i,u} \\;::\\; \\bigwedge\\nolimits^1 \\leftarrow(\\cap)\\;\\; \\bigwedge\\nolimits^2 >(\\cap)", "seq": "\\mathit{Act}_{i,u} = \\mathit{NST}_u \\cdot^1 (E_{i,u} \\cdot^2 0)_{i,u} \\;::\\; \\bigwedge\\nolimits^1 \\leftarrow(\\cap)\\;\\; \\bigwedge\\nolimits^2 >(\\cap)", "dir": "\\mathit{Act}_{i,u} = \\mathit{NST}_u \\cdot^1 (E_{i,u} \\cdot^2 0)_{i,u} \\;::\\; \\bigwedge\\nolimits^1 \\leftarrow(\\cap)\\;\\; \\bigwedge\\nolimits^2 >(\\cap)", "dirLabel": "B06", "dirKind": "moved", "dirNote": "moved \u2014 computed once, at the top; it is the while test", "section": null, "note": "", "meaning": "For a point u of Act, compare E at u against 0 and keep it only where E > 0, then intersect with NST and take NST's boolean."}, {"id": "SEL", "kind": "added", "par": "", "seq": "\\mathit{Sel}_{i,u^*} = \\mathit{Act}_{i,u} \\lll_{u^*} \\mathbf{1}(\\text{select-any-vertex})", "dir": "\\mathit{Sel}_{i,u^*} = \\mathit{Act}_{i,u} \\lll_{u^*} \\mathbf{1}(\\text{select-any-vertex})", "dirLabel": "B07", "dirKind": "same", "dirNote": "", "section": null, "note": "The only Einsum the sequential cascade adds. <b>Act</b> may hold several vertices; <b>Sel</b> holds exactly one.", "meaning": "Reduce Act, which may hold several vertices, to a one-hot tensor holding exactly one. Every Einsum downstream reads Sel instead of Act, so only that vertex's row survives."}, {"id": "E07", "kind": "changed", "par": "\\mathit{ActR}_{i,u,v} = \\mathit{Act}_{i,u} \\cdot R_{i,u,v} \\;::\\; \\bigwedge \\leftarrow(\\cap)", "seq": "\\mathit{ActR}_{i,u,v} = \\mathit{Sel}_{i,u} \\cdot R_{i,u,v} \\;::\\; \\bigwedge \\leftarrow(\\cap)", "dir": "\\mathit{ActR}_{i,u,v} = \\mathit{Sel}_{i,u} \\cdot R_{i,u,v} \\;::\\; \\bigwedge \\leftarrow(\\cap)", "dirLabel": "B08", "dirKind": "same", "dirNote": "", "section": null, "note": "Reads <b>Sel</b> where the parallel cascade reads <b>Act</b>. This is what makes everything downstream single-rowed.", "meaning": "For a point (u,v) of ActR, take Act at u and R at (u,v). \u2229 keeps points where both exist, and takes Act's boolean."}, {"id": "E08", "kind": "same", "par": "\\mathit{Lbl}_{i,u,v} = D_{i,u} \\cdot (D_{i,v} + 1)_{i,v} \\;::\\; \\bigwedge \\equiv(\\cap)", "seq": "\\mathit{Lbl}_{i,u,v} = D_{i,u} \\cdot (D_{i,v} + 1)_{i,v} \\;::\\; \\bigwedge \\equiv(\\cap)", "dir": "\\mathit{Lbl}_{i,u,v} = D_{i,u} \\cdot (D_{i,v} + 1)_{i,v} \\;::\\; \\bigwedge \\equiv(\\cap)", "dirLabel": "B09", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point (u,v) of Lbl, compare D at u against D at v plus 1, keeping it only where they are equal."}, {"id": "E09", "kind": "same", "par": "\\mathit{Adm}_{i,u,v} = \\mathit{ActR}_{i,u,v} \\cdot \\mathit{Lbl}_{i,u,v} \\;::\\; \\bigwedge \\text{AND}(\\cap)", "seq": "\\mathit{Adm}_{i,u,v} = \\mathit{ActR}_{i,u,v} \\cdot \\mathit{Lbl}_{i,u,v} \\;::\\; \\bigwedge \\text{AND}(\\cap)", "dir": "\\mathit{Adm}_{i,u,v} = \\mathit{ActR}_{i,u,v} \\cdot \\mathit{Lbl}_{i,u,v} \\;::\\; \\bigwedge \\text{AND}(\\cap)", "dirLabel": "B10", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point (u,v) of Adm, keep it where both ActR and Lbl exist."}, {"id": "E10", "kind": "same", "par": "\\mathit{PushCand}_{i,u,v^*} = \\mathit{Adm}_{i,u,v} \\lll_{v^*} \\mathbf{1}(\\text{pick-admissible-edge})", "seq": "\\mathit{PushCand}_{i,u,v^*} = \\mathit{Adm}_{i,u,v} \\lll_{v^*} \\mathbf{1}(\\text{pick-admissible-edge})", "dir": "\\mathit{PushCand}_{i,u,v^*} = \\mathit{Adm}_{i,u,v} \\lll_{v^*} \\mathbf{1}(\\text{pick-admissible-edge})", "dirLabel": "B13", "dirKind": "same", "dirNote": "", "section": "Push step", "note": "", "meaning": "For each u, the coordinate operator keeps one point (u,v) and drops the rest of that u-row."}, {"id": "E11", "kind": "same", "par": "\\delta_{i,u,v} = (E_{i,u} \\cdot^1 R_{i,u,v})_{i,u,v} \\cdot^2 \\mathit{PushCand}_{i,u,v} \\;::\\; \\bigwedge\\nolimits^1 \\min(\\cap)\\;\\; \\bigwedge\\nolimits^2 \\leftarrow(\\cap)", "seq": "\\delta_{i,u,v} = (E_{i,u} \\cdot^1 R_{i,u,v})_{i,u,v} \\cdot^2 \\mathit{PushCand}_{i,u,v} \\;::\\; \\bigwedge\\nolimits^1 \\min(\\cap)\\;\\; \\bigwedge\\nolimits^2 \\leftarrow(\\cap)", "dir": "\\delta_{i,u,v} = (E_{i,u} \\cdot^1 R_{i,u,v})_{i,u,v} \\cdot^2 \\mathit{PushCand}_{i,u,v} \\;::\\; \\bigwedge\\nolimits^1 \\min(\\cap)\\;\\; \\bigwedge\\nolimits^2 \\leftarrow(\\cap)", "dirLabel": "B14", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point (u,v) of delta, take the min of E at u and R at (u,v), then \u2229 with PushCand keeps only the one selected point per u."}, {"id": "E12", "kind": "same", "par": "F_{i+1,u,v} = (F_{i,u,v} \\cdot^1 \\delta_{i,u,v})_{i,u,v} \\cdot^2 \\delta_{i,v,u} \\;::\\; \\bigwedge\\nolimits^1 +(\\cup)\\;\\; \\bigwedge\\nolimits^2 -(\\cup)", "seq": "F_{i+1,u,v} = (F_{i,u,v} \\cdot^1 \\delta_{i,u,v})_{i,u,v} \\cdot^2 \\delta_{i,v,u} \\;::\\; \\bigwedge\\nolimits^1 +(\\cup)\\;\\; \\bigwedge\\nolimits^2 -(\\cup)", "dir": "F_{i+1,u,v} = (F_{i,u,v} \\cdot^1 \\delta_{i,u,v})_{i,u,v} \\cdot^2 \\delta_{i,v,u} \\;::\\; \\bigwedge\\nolimits^1 +(\\cup)\\;\\; \\bigwedge\\nolimits^2 -(\\cup)", "dirLabel": "B15", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point (u,v) of F, add delta at (u,v) and subtract delta at (v,u)."}, {"id": "E13", "kind": "same", "par": "\\mathit{InPush}_{i,v} = \\delta_{i,u,v} \\;::\\; \\bigvee +(\\cup)", "seq": "\\mathit{InPush}_{i,v} = \\delta_{i,u,v} \\;::\\; \\bigvee +(\\cup)", "dir": "\\mathit{InPush}_{i,v} = \\delta_{i,u,v} \\;::\\; \\bigvee +(\\cup)", "dirLabel": "B16", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "Reduce over rank u: for each v, sum delta at all points (u,v)."}, {"id": "E14", "kind": "same", "par": "\\mathit{OutPush}_{i,u} = \\delta_{i,u,v} \\;::\\; \\bigvee +(\\cup)", "seq": "\\mathit{OutPush}_{i,u} = \\delta_{i,u,v} \\;::\\; \\bigvee +(\\cup)", "dir": "\\mathit{OutPush}_{i,u} = \\delta_{i,u,v} \\;::\\; \\bigvee +(\\cup)", "dirLabel": "B17", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "Reduce over rank v: for each u, sum delta at all points (u,v)."}, {"id": "E15", "kind": "same", "par": "E_{i+1,u} = (E_{i,u} \\cdot^1 \\mathit{InPush}_{i,u})_{i,u} \\cdot^2 \\mathit{OutPush}_{i,u} \\;::\\; \\bigwedge\\nolimits^1 +(\\cup)\\;\\; \\bigwedge\\nolimits^2 -(\\cup)", "seq": "E_{i+1,u} = (E_{i,u} \\cdot^1 \\mathit{InPush}_{i,u})_{i,u} \\cdot^2 \\mathit{OutPush}_{i,u} \\;::\\; \\bigwedge\\nolimits^1 +(\\cup)\\;\\; \\bigwedge\\nolimits^2 -(\\cup)", "dir": "E_{i+1,u} = (E_{i,u} \\cdot^1 \\mathit{InPush}_{i,u})_{i,u} \\cdot^2 \\mathit{OutPush}_{i,u} \\;::\\; \\bigwedge\\nolimits^1 +(\\cup)\\;\\; \\bigwedge\\nolimits^2 -(\\cup)", "dirLabel": "B18", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point u of E, add InPush at u and subtract OutPush at u."}, {"id": "E16", "kind": "same", "par": "R_{i+1,u,v} = (R_{i,u,v} \\cdot^1 \\delta_{i,u,v})_{i,u,v} \\cdot^2 \\delta_{i,v,u} \\;::\\; \\bigwedge\\nolimits^1 -(\\cup)\\;\\; \\bigwedge\\nolimits^2 +(\\cup)", "seq": "R_{i+1,u,v} = (R_{i,u,v} \\cdot^1 \\delta_{i,u,v})_{i,u,v} \\cdot^2 \\delta_{i,v,u} \\;::\\; \\bigwedge\\nolimits^1 -(\\cup)\\;\\; \\bigwedge\\nolimits^2 +(\\cup)", "dir": "R_{i+1,u,v} = (R_{i,u,v} \\cdot^1 \\delta_{i,u,v})_{i,u,v} \\cdot^2 \\delta_{i,v,u} \\;::\\; \\bigwedge\\nolimits^1 -(\\cup)\\;\\; \\bigwedge\\nolimits^2 +(\\cup)", "dirLabel": "B19", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point (u,v) of R, subtract delta at (u,v) and add delta at (v,u)."}, {"id": "E17", "kind": "same", "par": "\\mathit{Adm}_{i+1,u,v} = R_{i+1,u,v} \\cdot \\mathit{Lbl}_{i,u,v} \\;::\\; \\bigwedge \\rightarrow(\\cap)", "seq": "\\mathit{Adm}_{i+1,u,v} = R_{i+1,u,v} \\cdot \\mathit{Lbl}_{i,u,v} \\;::\\; \\bigwedge \\rightarrow(\\cap)", "dir": "", "dirLabel": "", "dirKind": "dropped", "dirNote": "", "section": "Relabel step", "note": "", "meaning": "For a point (u,v) of Adm, take R at (u,v) and Lbl at (u,v). \u2229 keeps points where both exist, and takes Lbl's boolean."}, {"id": "E18", "kind": "same", "par": "\\mathit{HasAdm}_{i+1,u} = \\mathit{Adm}_{i+1,u,v} \\;::\\; \\bigvee \\text{OR}(\\cup)", "seq": "\\mathit{HasAdm}_{i+1,u} = \\mathit{Adm}_{i+1,u,v} \\;::\\; \\bigvee \\text{OR}(\\cup)", "dir": "\\mathit{HasAdm}_{i,u} = \\mathit{Adm}_{i,u,v} \\;::\\; \\bigvee \\text{OR}(\\cup)", "dirLabel": "B11", "dirKind": "changed", "dirNote": "moved \u2014 asked before the push, not after", "section": null, "note": "", "meaning": "Reduce over rank v: for each u, OR Adm at all points (u,v)."}, {"id": "E19", "kind": "same", "par": "\\mathit{Act}_{i+1,u} = \\mathit{NST}_u \\cdot^1 (E_{i+1,u} \\cdot^2 0)_{i+1,u} \\;::\\; \\bigwedge\\nolimits^1 \\leftarrow(\\cap)\\;\\; \\bigwedge\\nolimits^2 >(\\cap)", "seq": "\\mathit{Act}_{i+1,u} = \\mathit{NST}_u \\cdot^1 (E_{i+1,u} \\cdot^2 0)_{i+1,u} \\;::\\; \\bigwedge\\nolimits^1 \\leftarrow(\\cap)\\;\\; \\bigwedge\\nolimits^2 >(\\cap)", "dir": "", "dirLabel": "", "dirKind": "dropped", "dirNote": "", "section": null, "note": "", "meaning": "For a point u of Act, the same as E06 but on generation i+1."}, {"id": "E20", "kind": "changed", "par": "\\mathit{Rel}_{i+1,u} = \\mathit{Act}_{i+1,u} \\cdot \\neg \\mathit{HasAdm}_{i+1,u} \\;::\\; \\bigwedge \\text{AND}(\\cap)", "seq": "\\mathit{Rel}_{i+1,u} = (\\mathit{Act}_{i+1,u} \\cdot^1 \\neg \\mathit{HasAdm}_{i+1,u})_{i,u} \\cdot^2 \\mathit{Sel}_{i,u} \\;::\\; \\bigwedge\\nolimits^1 \\text{AND}(\\cap)\\;\\; \\bigwedge\\nolimits^2 \\leftarrow(\\cap)", "dir": "\\mathit{Rel}_{i,u} = \\mathit{Sel}_{i,u} \\cdot^1 \\neg \\mathit{HasAdm}_{i,u} \\;::\\; \\bigwedge\\nolimits^1 \\text{AND}(\\cap)", "dirLabel": "B12", "dirKind": "changed", "dirNote": "changed \u2014 the branch, decided before anything is written", "section": null, "note": "Gains the <b>\u00b7\u00b2 Sel</b> gate. Without it every stuck vertex would relabel \u2014 one vertex pushing while all vertices relabel is neither cascade.", "meaning": "For a point u of Rel, keep it where Act exists and HasAdm does not."}, {"id": "E21", "kind": "same", "par": "\\mathit{NeiLbl}_{i,u,v} = (R_{i+1,u,v} \\cdot^1 \\mathit{Rel}_{i+1,u})_{i,u,v} \\cdot^2 D_{i,v} \\;::\\; \\bigwedge\\nolimits^1 \\leftarrow(\\cap)\\;\\; \\bigwedge\\nolimits^2 \\rightarrow(\\cap)", "seq": "\\mathit{NeiLbl}_{i,u,v} = (R_{i+1,u,v} \\cdot^1 \\mathit{Rel}_{i+1,u})_{i,u,v} \\cdot^2 D_{i,v} \\;::\\; \\bigwedge\\nolimits^1 \\leftarrow(\\cap)\\;\\; \\bigwedge\\nolimits^2 \\rightarrow(\\cap)", "dir": "\\mathit{NeiLbl}_{i,u,v} = (R_{i,u,v} \\cdot^1 \\mathit{Rel}_{i,u})_{i,u,v} \\cdot^2 D_{i,v} \\;::\\; \\bigwedge\\nolimits^1 \\leftarrow(\\cap)\\;\\; \\bigwedge\\nolimits^2 \\rightarrow(\\cap)", "dirLabel": "B20", "dirKind": "changed", "dirNote": "changed \u2014 reads R at i, not i+1", "section": null, "note": "", "meaning": "For a point (u,v) of NeiLbl, keep it where R at (u,v) and Rel at u both exist, and take D at v as the value."}, {"id": "E22", "kind": "same", "par": "\\mathit{MinNeiLbl}_{i,u} = \\mathit{NeiLbl}_{i,u,v} \\;::\\; \\bigvee \\min(\\cup)", "seq": "\\mathit{MinNeiLbl}_{i,u} = \\mathit{NeiLbl}_{i,u,v} \\;::\\; \\bigvee \\min(\\cup)", "dir": "\\mathit{MinNeiLbl}_{i,u} = \\mathit{NeiLbl}_{i,u,v} \\;::\\; \\bigvee \\min(\\cup)", "dirLabel": "B21", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "Reduce over rank v: for each u, take the min of NeiLbl at all points (u,v)."}, {"id": "E23", "kind": "same", "par": "\\mathit{NewD}_{i,u} = (\\mathit{MinNeiLbl}_{i,u} \\cdot 1)_{i,u} \\;::\\; \\bigwedge +(\\cap)", "seq": "\\mathit{NewD}_{i,u} = (\\mathit{MinNeiLbl}_{i,u} \\cdot 1)_{i,u} \\;::\\; \\bigwedge +(\\cap)", "dir": "\\mathit{NewD}_{i,u} = (\\mathit{MinNeiLbl}_{i,u} \\cdot 1)_{i,u} \\;::\\; \\bigwedge +(\\cap)", "dirLabel": "B22", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point u of NewD, add 1 to MinNeiLbl at u."}, {"id": "E24", "kind": "same", "par": "D_{i+1,u} = D_{i,u} \\cdot \\mathit{NewD}_{i,u} \\;::\\; \\bigwedge \\mathbin{<\\!\\!<}(\\cup)", "seq": "D_{i+1,u} = D_{i,u} \\cdot \\mathit{NewD}_{i,u} \\;::\\; \\bigwedge \\mathbin{<\\!\\!<}(\\cup)", "dir": "D_{i+1,u} = D_{i,u} \\cdot \\mathit{NewD}_{i,u} \\;::\\; \\bigwedge \\mathbin{<\\!\\!<}(\\cup)", "dirLabel": "B23", "dirKind": "same", "dirNote": "", "section": null, "note": "", "meaning": "For a point u of D, take NewD at u where it exists, otherwise keep D at u."}, {"id": "stop", "kind": "same", "par": "\\diamond \\,:\\; \\lVert \\mathit{Act}_{i+1} \\rVert \\equiv 0", "seq": "\\diamond \\,:\\; \\lVert \\mathit{Act}_{i+1} \\rVert \\equiv 0", "dir": "\\diamond \\,:\\; \\lVert \\mathit{Act}_{i} \\rVert \\equiv 0", "dirLabel": "stop", "dirKind": "changed", "dirNote": "changed \u2014 tests Act at i, the one the round opened with", "section": "Stopping condition", "note": "", "meaning": "Count the non-empty points in Act. Stop when there are none."}];
+const t = document.getElementById('t');
+const tex = s => s ? '\\(' + s + '\\)' : '<span class="none">— not in this cascade —</span>';
+
+const gone = '<span class="gone">— dropped: the branching cascade has no ' +
+             'post-push recomputation —</span>';
+
+for (const r of ROWS_) {
+  if (r.section) {
+    const sr = t.insertRow(); sr.className = 'section';
+    const c = sr.insertCell(); c.colSpan = 4; c.textContent = r.section;
+  }
+  const tr = t.insertRow();
+  // A row is hidden in "only the differences" mode when it is identical in
+  // BOTH comparisons -- otherwise the third column's changes would vanish.
+  const quiet = r.kind === 'same' && r.dirKind === 'same';
+  tr.className = r.kind + (quiet ? ' alldiff-hide' : '');
+  tr.insertCell().outerHTML = '<td class="eid">' + r.id +
+    (r.kind === 'added' ? '<br><span class="chip">new</span>' :
+     r.kind === 'changed' ? '<br><span class="chip">changed</span>' : '') + '</td>';
+  tr.insertCell().innerHTML = r.kind === 'dir-only' ? gone : tex(r.par);
+  const sc = tr.insertCell();
+  sc.className = 'seqcol';
+  sc.innerHTML = (r.kind === 'dir-only' ? gone : tex(r.seq)) +
+    (r.note ? '<div class="note">' + r.note + '</div>' : '') +
+    (r.kind !== 'same' && r.meaning ? '<div class="mean">' + r.meaning + '</div>' : '');
+  const dc = tr.insertCell();
+  dc.className = 'dircol ' + r.dirKind;
+  dc.innerHTML =
+    (r.dirLabel ? '<span class="blabel">' + r.dirLabel +
+       (r.dirKind === 'changed' ? ' <span class="chip b">changed</span>' :
+        r.dirKind === 'moved' ? ' <span class="chip b">moved</span>' : '') +
+       '</span>' : '') +
+    (r.dirKind === 'dropped' ? gone : tex(r.dir)) +
+    (r.dirNote ? '<div class="note b">' + r.dirNote + '</div>' : '');
+}
+
+document.getElementById('tog').onclick = e => {
+  const on = document.body.classList.toggle('only-diff');
+  e.target.textContent = on ? 'show the whole cascade' : 'show only the differences';
+};
+
+const mjx = document.getElementById('mjx');
+mjx.addEventListener('load', () => {
+  if (window.MathJax && MathJax.startup && MathJax.startup.promise)
+    MathJax.startup.promise.then(() => MathJax.typesetPromise([t]));
+});
+</script></body></html>

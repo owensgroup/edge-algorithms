@@ -26,6 +26,22 @@ layout: default
     <span class="viz-note">{{ page.viz_alt_note }}</span>
   </p>
   {% endif %}
+  {% if page.viz_alt2 %}
+  <p class="viz-cta viz-cta-alt">
+    <a class="viz-button viz-button-alt" href="{{ page.viz_alt2 | relative_url }}" target="_blank" rel="noopener">
+      ▶ {{ page.viz_alt2_label | default: "Third walkthrough" }}
+    </a>
+    <span class="viz-note">{{ page.viz_alt2_note }}</span>
+  </p>
+  {% endif %}
+  {% if page.viz_alt3 %}
+  <p class="viz-cta viz-cta-alt">
+    <a class="viz-button viz-button-alt" href="{{ page.viz_alt3 | relative_url }}" target="_blank" rel="noopener">
+      ▶ {{ page.viz_alt3_label | default: "Fourth walkthrough" }}
+    </a>
+    <span class="viz-note">{{ page.viz_alt3_note }}</span>
+  </p>
+  {% endif %}
 
   {% assign sections =
   "status_intro|problem_statement|working_example_part1|working_example_part2|edge_expression_walkthrough|edge_expression|other_notes|variants|implementation_notes|complexity_costs|related_notes"
