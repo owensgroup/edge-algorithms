@@ -104,9 +104,43 @@ other_notes: |
   on a graph with a negative-weight cycle the distances decrease forever and the
   cascade never halts. This page assumes no negative cycle.
 variants: |
-  Dropping negative weights and replacing $\min$ with $\text{ANY}$ recovers the
-  unweighted breadth-first search. Bounding the iteration count at $\lvert V\rvert$ and
-  checking for an improvement on the final round gives negative-cycle detection.
+  **Negative-Cycle Detection.**
+  The main cascade assumes the graph has no negative-weight cycle. Any shortest path in a
+  cycle-free graph uses at most $\lvert V\rvert - 1$ edges, so the cascade halts by round
+  $\lvert V\rvert - 1$ at the latest. If distances still improve on round $\lvert V\rvert$,
+  a negative cycle is reachable.
+
+  We capture this with a Boolean scalar $NC$ (initially False) that is set after the main
+  cascade finishes:
+
+  $$
+  \begin{aligned}
+  &\triangleright \textbf{Tensors}\\
+  &NC \to \text{Boolean},\ \text{empty} = \text{False}\\[4pt]
+  &\triangleright \textbf{Initialization}\\
+  &NC = \text{False}\\[4pt]
+  &\triangleright \textbf{Extended Einsum (run once, after the main cascade)}\\
+  &NC = D_{i:\,i=\lvert V\rvert,\,d}\ \cdot\ D_{i:\,i=\lvert V\rvert-1,\,d}
+        :: \textstyle\bigwedge_d <(\cap)\ \bigvee_d \text{OR}(\cup)
+  \end{aligned}
+  $$
+
+  The two operands are slices of the distance tensor at fixed generation indices — the
+  distances after round $\lvert V\rvert$ and after round $\lvert V\rvert - 1$. The $<$ compare
+  fires for each $d$ where the later round is strictly smaller; the $\text{OR}$ reduce over $d$
+  collapses those per-vertex Booleans into a single scalar flag. The cascade stops when
+  $D_{i+1} \equiv D_i$, so if no negative cycle is reachable the cascade halts before round
+  $\lvert V\rvert$ is ever produced and $NC$ stays False.
+
+  **Unweighted BFS.**
+  Dropping negative edge weights and replacing $\min$ with $\text{ANY}$ in the relax step
+  recovers unweighted breadth-first search; see the BFS page.
+
+  **Dynamic-Programming Interpretation.**
+  Setting $D[i][v]$ to "shortest distance from source using at most $i$ edges" gives the
+  DP recurrence $D[i][v] = \min(D[i-1][v],\ \min_{u}(D[i-1][u] + G[u][v]))$. This is the
+  same EDGE cascade — the difference is purely at the implementation level (how the distance
+  tensor is materialized: a 2-D table vs an in-place single array).
 implementation_notes: |
   Relax is a sparse matrix-by-vector product over the distance tensor; the remaining
   three steps are elementwise merges over the destination rank. Because $C$ gates
