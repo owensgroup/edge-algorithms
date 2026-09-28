@@ -109,9 +109,11 @@ edge_expression_walkthrough: |
   **Active vertices.** $$NST_u = \neg S_u \cdot \neg T_u :: \bigwedge \text{AND}(\cap)$$
   marks the internal vertices (neither source nor sink). A vertex is active when it is
   internal and holds positive excess:
-  $$Act_{i,u} = NST_u \cdot^1 (E_{i,u} \cdot^2 0)_{i,u} :: \bigwedge^1 \leftarrow(\cap)\ \bigwedge^2 >(\cap)$$,
-  where the inner sub-merge tests $$E_{i,u} > 0$$ and the outer take-left keeps $$NST$$'s
-  Boolean at the surviving coordinates.
+  $$Act_{1,u} = NST_u \cdot^1 (E_{1,u} \cdot^2 0)_{1,u} :: \bigwedge^1 \leftarrow(\cap)\ \bigwedge^2 >(\cap)$$,
+  where the inner sub-merge tests $$E_{1,u} > 0$$ and the outer take-left keeps $$NST$$'s
+  Boolean at the surviving coordinates. This is pinned to generation 1 because it only
+  needs to **seed** the loop: the relabel step below recomputes $$Act_{i+1}$$ from the
+  excess each push produces, so every round after the first reads that instead.
 
   **Admissibility.** $$ActR_{i,u,v} = Act_{i,u} \cdot R_{i,u,v} :: \bigwedge \leftarrow(\cap)$$
   keeps the residual edges leaving an active vertex. No explicit $$>0$$ test is needed:
@@ -146,10 +148,10 @@ edge_expression_walkthrough: |
   $$R_{i+1,u,v} = (R_{i,u,v} \cdot^1 \delta_{i,u,v})_{i,u,v} \cdot^2 \delta_{i,v,u} :: \bigwedge^1 -(\cup)\ \bigwedge^2 +(\cup)$$.
 
   **Relabel.** Using the updated residual, recompute the admissible mask
-  $$Adm_{i+1,u,v} = R_{i+1,u,v} \cdot Lbl_{i,u,v} :: \bigwedge \rightarrow(\cap)$$ — distances
+  $$AdmPost_{i+1,u,v} = R_{i+1,u,v} \cdot Lbl_{i,u,v} :: \bigwedge \rightarrow(\cap)$$ — distances
   have not moved yet, so $$Lbl$$ is still generation $$i$$ — and whether each vertex still
   has any admissible edge
-  $$HasAdm_{i+1,u} = Adm_{i+1,u,v} :: \bigvee \text{OR}(\cup)$$. The active set is recomputed
+  $$HasAdm_{i+1,u} = AdmPost_{i+1,u,v} :: \bigvee \text{OR}(\cup)$$. The active set is recomputed
   on the updated excess
   $$Act_{i+1,u} = NST_u \cdot^1 (E_{i+1,u} \cdot^2 0)_{i+1,u} :: \bigwedge^1 \leftarrow(\cap)\ \bigwedge^2 >(\cap)$$;
   this re-derivation is necessary because bulk-synchronous evaluation gives no
@@ -202,7 +204,7 @@ edge_expression: |
   \end{cases}\\[4pt]
   &\triangleright \textbf{Extended Einsum (one push/relabel round per iteration } i)\\
   &NST_u = \neg S_u \cdot \neg T_u :: \textstyle\bigwedge \text{AND}(\cap)\\
-  &Act_{i,u} = NST_u \cdot^1 (E_{i,u} \cdot^2 0)_{i,u} :: \textstyle\bigwedge^1 \leftarrow(\cap)\ \bigwedge^2 >(\cap)\\
+  &Act_{1,u} = NST_u \cdot^1 (E_{1,u} \cdot^2 0)_{1,u} :: \textstyle\bigwedge^1 \leftarrow(\cap)\ \bigwedge^2 >(\cap)\\
   &ActR_{i,u,v} = Act_{i,u} \cdot R_{i,u,v} :: \textstyle\bigwedge \leftarrow(\cap)\\
   &Lbl_{i,u,v} = D_{i,u} \cdot (D_{i,v} + 1)_{i,v} :: \textstyle\bigwedge \equiv(\cap)\\
   &Adm_{i,u,v} = ActR_{i,u,v} \cdot Lbl_{i,u,v} :: \textstyle\bigwedge \text{AND}(\cap)\\[4pt]
@@ -215,8 +217,8 @@ edge_expression: |
   &E_{i+1,u} = (E_{i,u} \cdot^1 InPush_{i,u})_{i,u} \cdot^2 OutPush_{i,u} :: \textstyle\bigwedge^1 +(\cup)\ \bigwedge^2 -(\cup)\\
   &R_{i+1,u,v} = (R_{i,u,v} \cdot^1 \delta_{i,u,v})_{i,u,v} \cdot^2 \delta_{i,v,u} :: \textstyle\bigwedge^1 -(\cup)\ \bigwedge^2 +(\cup)\\[4pt]
   &\triangleright \textbf{Relabel Step}\\
-  &Adm_{i+1,u,v} = R_{i+1,u,v} \cdot Lbl_{i,u,v} :: \textstyle\bigwedge \rightarrow(\cap)\\
-  &HasAdm_{i+1,u} = Adm_{i+1,u,v} :: \textstyle\bigvee \text{OR}(\cup)\\
+  &AdmPost_{i+1,u,v} = R_{i+1,u,v} \cdot Lbl_{i,u,v} :: \textstyle\bigwedge \rightarrow(\cap)\\
+  &HasAdm_{i+1,u} = AdmPost_{i+1,u,v} :: \textstyle\bigvee \text{OR}(\cup)\\
   &Act_{i+1,u} = NST_u \cdot^1 (E_{i+1,u} \cdot^2 0)_{i+1,u} :: \textstyle\bigwedge^1 \leftarrow(\cap)\ \bigwedge^2 >(\cap)\\
   &Rel_{i+1,u} = Act_{i+1,u} \cdot \neg HasAdm_{i+1,u} :: \textstyle\bigwedge \text{AND}(\cap)\\
   &NeiLbl_{i,u,v} = (R_{i+1,u,v} \cdot^1 Rel_{i+1,u})_{i,u,v} \cdot^2 D_{i,v} :: \textstyle\bigwedge^1 \leftarrow(\cap)\ \bigwedge^2 \rightarrow(\cap)\\
@@ -272,7 +274,7 @@ variants: |
   pushes and relabels.
 
   **That is not the same as transcribing the pseudocode.** The cascade above
-  recomputes $$Act$$ and $$Adm$$ after the push, because bulk-synchronous execution
+  recomputes $$Act$$ and admissibility after the push, because bulk-synchronous execution
   has no read-after-write. Keep those recomputations and the relabel test is asked
   against *post-push* state — so a vertex that makes a saturating push, still holds
   excess, and now has nothing admissible will relabel **in the same round**. On CLRS
@@ -306,8 +308,18 @@ variants: |
 
   Removing a selector is not free. Bulk-synchronous execution has no read-after-write,
   so anything derived from mutated state must be recomputed as a new generation — which
-  is exactly why $$Act$$ and $$Adm$$ each appear twice per generation above. That
-  duplication is the visible residue of the selector that is no longer there.
+  is exactly why admissibility is computed twice per generation above. $$Act$$ is
+  written twice too, but only one of those is in the loop: $$Act_{1}$$ seeds it and
+  $$Act_{i+1}$$ advances it. That duplication is the visible residue of the selector
+  that is no longer there.
+
+  The two admissibility results are **different tensors**, and deliberately so.
+  $$Adm_{i,u,v}$$ reduces $$ActR$$, so it carries the active-vertex factor, and it is
+  what the push selects from. $$AdmPost_{i+1,u,v}$$ reads $$R_{i+1}$$ directly, has no
+  active-vertex factor, and reads $$Lbl_i$$ — the heights *before* this round's
+  relabel. It is not a later generation of $$Adm$$: asking the question at the new
+  heights would need $$D_{i+1}$$, which is computed from this very answer. $$Act$$ is
+  the opposite case — its two computations agree, so one of them is redundant.
 
   Which vertex $$\text{select-any-vertex}$$ picks is deliberately left open, as in the
   generic algorithm. Lowest-index, FIFO and highest-label are all valid refinements
