@@ -99,8 +99,8 @@ edge_expression_walkthrough: |
   $$F_{i \equiv 1,u,v} = FS_{i \equiv 1,u,v} \cdot FS_{i \equiv 1,v,u} :: \bigwedge -(\cup)$$ —
   reading $$FS$$ at a point and at its transpose, so $$f(s,v) = c(s,v)$$ and
   $$f(v,s) = -c(s,v)$$. Because outflow is already stored as negative entries, excess is
-  just net inflow: $$E_{i \equiv 1,u} = F_{i \equiv 1,v,u} :: \bigvee +(\cup)$$, a reduction
-  over rank $$v$$. The initial residual $$R_1$$ is the capacity graph with the source row
+  just net inflow: $$E_{i \equiv 1,v} = F_{i \equiv 1,u,v} :: \bigvee +(\cup)$$, a reduction
+  over rank $$u$$. The initial residual $$R_1$$ is the capacity graph with the source row
   zeroed (its edges are now saturated) and the corresponding reverse edges back toward
   the source opened. The three cases are disjoint — the $$v = s$$ arm carries an explicit
   $$u \neq s$$ guard — so the result does not depend on evaluation order at a source
@@ -139,7 +139,7 @@ edge_expression_walkthrough: |
   most one of $$\delta_{i,u,v}$$ and $$\delta_{i,v,u}$$ is ever present: the $$+$$ and the $$-$$ land on
   a cell and its mirror in a single write. Excess is updated by what each vertex
   received versus sent
-  ($$InPush_{i,u} = \delta_{i,v,u} :: \bigvee +(\cup)$$,
+  ($$InPush_{i,v} = \delta_{i,u,v} :: \bigvee +(\cup)$$,
   $$OutPush_{i,u} = \delta_{i,u,v} :: \bigvee +(\cup)$$,
   then
   $$E_{i+1,u} = (E_{i,u} \cdot^1 InPush_{i,u})_{i,u} \cdot^2 OutPush_{i,u} :: \bigwedge^1 +(\cup)\ \bigwedge^2 -(\cup)$$),
@@ -195,7 +195,7 @@ edge_expression: |
   &\triangleright \textbf{Preflow from source (}i \equiv 1\text{)}\\
   &FS_{i \equiv 1,u,v} = S_u \cdot C_{u,v} :: \textstyle\bigwedge *(\cap)\\
   &F_{i \equiv 1,u,v} = FS_{i \equiv 1,u,v} \cdot FS_{i \equiv 1,v,u} :: \textstyle\bigwedge -(\cup)\\
-  &E_{i \equiv 1,u} = F_{i \equiv 1,v,u} :: \textstyle\bigvee +(\cup)\\
+  &E_{i \equiv 1,v} = F_{i \equiv 1,u,v} :: \textstyle\bigvee +(\cup)\\
   &R_{i \equiv 1,u,v} =
   \begin{cases}
   0 & u = s\\
@@ -212,7 +212,7 @@ edge_expression: |
   &PushCand_{i,u,v^*} = Adm_{i,u,v} \lll_{v^*} \mathbf{1}(\text{pick-admissible-edge})\\
   &\delta_{i,u,v} = (E_{i,u} \cdot^1 R_{i,u,v})_{i,u,v} \cdot^2 PushCand_{i,u,v} :: \textstyle\bigwedge^1 \min(\cap)\ \bigwedge^2 \leftarrow(\cap)\\
   &F_{i+1,u,v} = (F_{i,u,v} \cdot^1 \delta_{i,u,v})_{i,u,v} \cdot^2 \delta_{i,v,u} :: \textstyle\bigwedge^1 +(\cup)\ \bigwedge^2 -(\cup)\\
-  &InPush_{i,u} = \delta_{i,v,u} :: \textstyle\bigvee +(\cup)\\
+  &InPush_{i,v} = \delta_{i,u,v} :: \textstyle\bigvee +(\cup)\\
   &OutPush_{i,u} = \delta_{i,u,v} :: \textstyle\bigvee +(\cup)\\
   &E_{i+1,u} = (E_{i,u} \cdot^1 InPush_{i,u})_{i,u} \cdot^2 OutPush_{i,u} :: \textstyle\bigwedge^1 +(\cup)\ \bigwedge^2 -(\cup)\\
   &R_{i+1,u,v} = (R_{i,u,v} \cdot^1 \delta_{i,u,v})_{i,u,v} \cdot^2 \delta_{i,v,u} :: \textstyle\bigwedge^1 -(\cup)\ \bigwedge^2 +(\cup)\\[4pt]
