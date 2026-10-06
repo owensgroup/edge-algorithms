@@ -3,6 +3,9 @@ title: Exact Cover (Knuth's Algorithm X)
 authors: [Toluwanimi Odemuyiwa]
 summary: Knuth's Algorithm X for solving the exact cover and generalized exact cover problems, expressed as a stamped-stack EDGE cascade that dynamically reconstructs the active matrix state from the current path.
 tags: [exact-cover, algorithm-x, backtracking, np-complete, graphs]
+viz: /assets/viz/set-cover/
+viz_label: Open the interactive walkthrough
+viz_note: step one Einsum at a time on Working Example 1 and watch the stack, path and active rows and columns change — built with E04 split into Keep and TPath, and S₀ given as the input InitS, corrections not yet in the text below
 status_intro: |
   This page presents Knuth's Algorithm X for solving the exact cover problem, expressed
   entirely within the EDGE tensor algebraic framework. Recursive backtracking is
